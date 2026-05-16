@@ -1,0 +1,32 @@
+# Credenciales y estado runtime - NUNCA subir al repo ni al ZIP de entrega
+prototipo/simulator/certs/
+prototipo/infra/infra_state.json
+prototipo/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# LaTeX auxiliares
+memoria/*.aux
+memoria/*.log
+memoria/*.toc
+memoria/*.out
+memoria/*.nav
+memoria/*.snm
+
+# Streamlit
+.streamlit/
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store

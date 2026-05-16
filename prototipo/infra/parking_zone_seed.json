@@ -1,0 +1,316 @@
+{
+  "_meta": {
+    "description": "Semilla regenerada via OpenStreetMap (Overpass API). Cada plaza se ubica sobre el mid-point (o cuarto/tres cuartos) de un way real con highway transitable, sin parking=no ni access privado, dentro de la BBOX del piloto. Garantiza que ningun punto cae sobre edificios, parques o zonas no asfaltadas.",
+    "bbox": {
+      "sw": [
+        38.976059,
+        -1.858728
+      ],
+      "ne": [
+        38.983215,
+        -1.846111
+      ]
+    },
+    "source": "OpenStreetMap contributors via Overpass API",
+    "centroids_used": {
+      "Z1-CAMPUS": [
+        38.9793,
+        -1.8565
+      ],
+      "Z2-DEPORTIVO": [
+        38.981,
+        -1.852
+      ],
+      "Z3-SANITARIO": [
+        38.9815,
+        -1.848
+      ],
+      "Z4-RESIDENCIAL": [
+        38.9772,
+        -1.851
+      ]
+    }
+  },
+  "spots": [
+    {
+      "spotId": "ALB-Z1-001",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Paseo de los Estudiantes",
+      "lat": 38.980102,
+      "lon": -1.856053
+    },
+    {
+      "spotId": "ALB-Z1-002",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Paseo de los Estudiantes",
+      "lat": 38.977818,
+      "lon": -1.855663
+    },
+    {
+      "spotId": "ALB-Z1-003",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle Imperial",
+      "lat": 38.980215,
+      "lon": -1.855136
+    },
+    {
+      "spotId": "ALB-Z1-004",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle de Guillermina Medrano Aranda",
+      "lat": 38.979118,
+      "lon": -1.85827
+    },
+    {
+      "spotId": "ALB-Z1-005",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle María Zambrano",
+      "lat": 38.979673,
+      "lon": -1.854645
+    },
+    {
+      "spotId": "ALB-Z1-006",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle Flora Tristán",
+      "lat": 38.980039,
+      "lon": -1.85474
+    },
+    {
+      "spotId": "ALB-Z1-007",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle Cronista Francisco Ballesteros Gómez",
+      "lat": 38.978983,
+      "lon": -1.854434
+    },
+    {
+      "spotId": "ALB-Z1-008",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle Calabazas",
+      "lat": 38.980341,
+      "lon": -1.854456
+    },
+    {
+      "spotId": "ALB-Z1-009",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle Sancho Panza",
+      "lat": 38.981241,
+      "lon": -1.857178
+    },
+    {
+      "spotId": "ALB-Z1-010",
+      "zoneId": "Z1-CAMPUS",
+      "street": "Calle Cronista José Sánchez de la Rosa",
+      "lat": 38.981183,
+      "lon": -1.857832
+    },
+    {
+      "spotId": "ALB-Z2-001",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Avenida de España",
+      "lat": 38.980626,
+      "lon": -1.853111
+    },
+    {
+      "spotId": "ALB-Z2-002",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Avenida de España",
+      "lat": 38.980661,
+      "lon": -1.853286
+    },
+    {
+      "spotId": "ALB-Z2-003",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Calle Alcalde Virgilio Martínez Gutiérrez",
+      "lat": 38.982199,
+      "lon": -1.851663
+    },
+    {
+      "spotId": "ALB-Z2-004",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Calle Alcalde Virgilio Martínez Gutiérrez",
+      "lat": 38.98232,
+      "lon": -1.851597
+    },
+    {
+      "spotId": "ALB-Z2-005",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Calle Franklin Albricias",
+      "lat": 38.982441,
+      "lon": -1.852412
+    },
+    {
+      "spotId": "ALB-Z2-006",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Calle Alcalde Virgilio Martínez Gutiérrez",
+      "lat": 38.982103,
+      "lon": -1.853697
+    },
+    {
+      "spotId": "ALB-Z2-007",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Calle San Juan",
+      "lat": 38.982789,
+      "lon": -1.852088
+    },
+    {
+      "spotId": "ALB-Z2-008",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Calle San Juan",
+      "lat": 38.982666,
+      "lon": -1.852963
+    },
+    {
+      "spotId": "ALB-Z2-009",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Avenida del Arte",
+      "lat": 38.979053,
+      "lon": -1.852429
+    },
+    {
+      "spotId": "ALB-Z2-010",
+      "zoneId": "Z2-DEPORTIVO",
+      "street": "Calle Alcalde Virgilio Martínez Gutiérrez",
+      "lat": 38.98205,
+      "lon": -1.854177
+    },
+    {
+      "spotId": "ALB-Z3-001",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Duque de Rivas",
+      "lat": 38.981355,
+      "lon": -1.848312
+    },
+    {
+      "spotId": "ALB-Z3-002",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Jorge Manrique",
+      "lat": 38.981602,
+      "lon": -1.848472
+    },
+    {
+      "spotId": "ALB-Z3-003",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Ramón de Campoamor",
+      "lat": 38.981993,
+      "lon": -1.848105
+    },
+    {
+      "spotId": "ALB-Z3-004",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Ramón de Campoamor",
+      "lat": 38.982139,
+      "lon": -1.847862
+    },
+    {
+      "spotId": "ALB-Z3-005",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Plaza Santa Teresa de Jesús",
+      "lat": 38.982038,
+      "lon": -1.848551
+    },
+    {
+      "spotId": "ALB-Z3-006",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Gustavo Adolfo Bécquer",
+      "lat": 38.981924,
+      "lon": -1.848824
+    },
+    {
+      "spotId": "ALB-Z3-007",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Marqués de Santillana",
+      "lat": 38.982603,
+      "lon": -1.848433
+    },
+    {
+      "spotId": "ALB-Z3-008",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Primera Literatura",
+      "lat": 38.981201,
+      "lon": -1.849416
+    },
+    {
+      "spotId": "ALB-Z3-009",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Calle Marqués de Santillana",
+      "lat": 38.982786,
+      "lon": -1.848258
+    },
+    {
+      "spotId": "ALB-Z3-010",
+      "zoneId": "Z3-SANITARIO",
+      "street": "Plaza Fray Luis de León",
+      "lat": 38.98281,
+      "lon": -1.848898
+    },
+    {
+      "spotId": "ALB-Z4-001",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Calle Arquitectura",
+      "lat": 38.977452,
+      "lon": -1.849879
+    },
+    {
+      "spotId": "ALB-Z4-002",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Avenida de la Mancha",
+      "lat": 38.976299,
+      "lon": -1.851266
+    },
+    {
+      "spotId": "ALB-Z4-003",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Avenida de España",
+      "lat": 38.977096,
+      "lon": -1.852515
+    },
+    {
+      "spotId": "ALB-Z4-004",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Calle sin nombre",
+      "lat": 38.977866,
+      "lon": -1.852324
+    },
+    {
+      "spotId": "ALB-Z4-005",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Avenida de España",
+      "lat": 38.977061,
+      "lon": -1.852685
+    },
+    {
+      "spotId": "ALB-Z4-006",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Avenida del Arte",
+      "lat": 38.978299,
+      "lon": -1.85217
+    },
+    {
+      "spotId": "ALB-Z4-007",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Avenida del Arte",
+      "lat": 38.978764,
+      "lon": -1.850418
+    },
+    {
+      "spotId": "ALB-Z4-008",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Calle la Filosofía",
+      "lat": 38.978771,
+      "lon": -1.850673
+    },
+    {
+      "spotId": "ALB-Z4-009",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Avenida del Arte",
+      "lat": 38.978754,
+      "lon": -1.851928
+    },
+    {
+      "spotId": "ALB-Z4-010",
+      "zoneId": "Z4-RESIDENCIAL",
+      "street": "Calle el Derecho",
+      "lat": 38.97821,
+      "lon": -1.84944
+    }
+  ]
+}

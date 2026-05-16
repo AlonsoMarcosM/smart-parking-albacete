@@ -1,0 +1,59 @@
+openapi: 3.0.1
+info:
+  title: Smart Parking Albacete - API REST
+  version: "1.0"
+  description: |
+    API publica que expone el estado en tiempo real de las plazas del piloto
+    de smart parking en la zona universitaria de Albacete y los KPIs
+    agregados por sub-zona. Pensada para vehiculos autonomos, aplicaciones
+    moviles de movilidad urbana y dashboards de operador.
+servers:
+  - url: https://<api-id>.execute-api.us-east-1.amazonaws.com/prod
+paths:
+  /spots:
+    get:
+      summary: Lista de plazas con su estado mas reciente
+      parameters:
+        - in: query
+          name: zone
+          schema: { type: string }
+          required: false
+          description: Filtra por sub-zona (Z1-CAMPUS, Z2-DEPORTIVO, Z3-SANITARIO, Z4-RESIDENCIAL)
+        - in: query
+          name: format
+          schema: { type: string, enum: [json, geojson] }
+          required: false
+          description: Devuelve la coleccion como GeoJSON FeatureCollection
+      responses:
+        "200":
+          description: OK
+  /spots/{spotId}:
+    get:
+      summary: Detalle de una plaza
+      parameters:
+        - in: path
+          name: spotId
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
+        "404": { description: No encontrada }
+  /zones:
+    get:
+      summary: Lista de sub-zonas con KPIs vivos
+      responses:
+        "200": { description: OK }
+  /zones/{zoneId}/kpis:
+    get:
+      summary: Serie temporal de KPIs (mas reciente primero)
+      parameters:
+        - in: path
+          name: zoneId
+          required: true
+          schema: { type: string }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 100 }
+      responses:
+        "200": { description: OK }
+components: {}
