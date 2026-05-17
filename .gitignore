@@ -19,6 +19,7 @@ venv/
 
 # memoria/: ignorar borradores y artefactos de compilacion, publicar solo entregables
 memoria/*
+!memoria/README.md
 !memoria/MEMORIA_TECNICA.md
 !memoria/MEMORIA_TECNICA.pdf
 !memoria/MEMORIA_TECNICA.tex
