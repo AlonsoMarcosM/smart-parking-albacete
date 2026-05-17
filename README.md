@@ -42,7 +42,11 @@ Trabajo final de la asignatura **Internet de las Cosas y sus Aplicaciones** del 
 
 ## 2. Demo y capturas
 
-> *Las capturas de la consola AWS y del dashboard se encuentran en `memoria/imagenes/` y `memoria/diagramas/`. Para reproducirlas, sigue la sección [Puesta en marcha](#8-puesta-en-marcha).*
+**Zona piloto — entorno universitario de Albacete:**
+
+![Mapa de la zona piloto en Albacete con la BBOX de despliegue](memoria/imagenes/bbox.png)
+
+> *Capturas adicionales del dashboard y de la consola AWS disponibles en `memoria/imagenes/`. Para reproducirlas, sigue la sección [Puesta en marcha](#8-puesta-en-marcha).*
 
 | Vista | Descripción |
 |---|---|
