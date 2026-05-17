@@ -1,0 +1,26 @@
+flowchart LR
+    classDef base fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
+    classDef upgrade fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
+    classDef target fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
+    classDef risk fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+
+    P["Piloto académico<br/>40 plazas simuladas"]:::base
+    R["Piloto urbano<br/>~500 plazas"]:::base
+    Z["Particionado por zonas<br/>campus, deportivo, sanitario, residencial"]:::risk
+
+    F["Fleet provisioning<br/>certificado por sensor"]:::upgrade
+    K["Kinesis / buffer<br/>para picos"]:::upgrade
+    G["DynamoDB con GSI<br/>zona + estado"]:::upgrade
+    H["Histórico<br/>S3 o Timestream"]:::upgrade
+    S["API endurecida<br/>WAF + cuotas + auth"]:::upgrade
+    O["Operación municipal<br/>alertas + inventario"]:::upgrade
+
+    C["Escenario ciudad<br/>miles de plazas"]:::target
+
+    P --> R --> Z
+    Z --> F --> C
+    Z --> K --> C
+    Z --> G --> C
+    Z --> H --> C
+    Z --> S --> C
+    Z --> O --> C

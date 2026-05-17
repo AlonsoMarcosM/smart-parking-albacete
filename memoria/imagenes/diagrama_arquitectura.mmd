@@ -1,0 +1,42 @@
+flowchart TB
+    classDef sensor fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
+    classDef aws fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+    classDef compute fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
+    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
+    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
+
+    subgraph Edge["Capa de telemetría / borde"]
+        direction LR
+        SIM["Simulador Python<br/>40 plazas"]:::sensor
+        REAL["Sensor AMR magnético<br/>(diseño producción)"]:::sensor
+    end
+
+    subgraph AWS["AWS Academy Learner Lab / AWS Cloud"]
+        direction TB
+        IOT["AWS IoT Core<br/>MQTT + mTLS + Things"]:::aws
+        RULE["IoT Topic Rule<br/><code>parking/+/spot/+/status</code>"]:::aws
+        ING["Lambda ingest<br/>normaliza eventos"]:::compute
+        STATE[("DynamoDB<br/>parking-state")]:::data
+        AGG["Lambda aggregator<br/>KPIs por zona"]:::compute
+        KPIS[("DynamoDB<br/>zone-kpis")]:::data
+        APIGW["API Gateway REST<br/>OpenAPI + GeoJSON"]:::api
+        LAPI["Lambda api<br/>lectura para clientes"]:::compute
+    end
+
+    subgraph Consumers["Consumo de datos"]
+        direction LR
+        DASH["Dashboard Streamlit<br/>mapa + KPIs"]:::sensor
+        EXT["Apps / paneles / movilidad<br/>cliente externo HTTPS"]:::sensor
+    end
+
+    SIM -->|"MQTT/TLS + X.509"| IOT
+    REAL -. "NB-IoT en despliegue real" .-> IOT
+    IOT --> RULE --> ING
+    ING -->|"invoke async por zoneId"| AGG
+    AGG -->|"serie temporal"| KPIS
+    ING -->|"UPSERT por spotId"| STATE
+    AGG -->|"scan/query zona"| STATE
+    APIGW --> LAPI
+    LAPI --> STATE
+    LAPI --> KPIS
+    Consumers -->|"HTTPS"| APIGW

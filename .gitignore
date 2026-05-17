@@ -1,0 +1,50 @@
+# Credenciales y estado runtime
+prototipo/simulator/certs/
+prototipo/infra/infra_state.json
+prototipo/.env
+
+# Materiales academicos y notas internas (no publicar)
+temario/
+Guia_Docente_INTERNET_DE_LAS_COSAS_Y_SUS_APLICACIONES.md
+guia_proyecto.md
+PLANCLAUDE.md
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# memoria/: ignorar borradores y artefactos de compilacion, publicar solo entregables
+memoria/*
+!memoria/MEMORIA_TECNICA.md
+!memoria/MEMORIA_TECNICA.pdf
+!memoria/MEMORIA_TECNICA.tex
+!memoria/imagenes/
+memoria/imagenes/*
+!memoria/imagenes/bbox.png
+!memoria/imagenes/diagrama_*.png
+!memoria/imagenes/diagrama_*.mmd
+!memoria/imagenes/mermaid-config.json
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+
+# Streamlit
+.streamlit/
+prototipo/.streamlit-run/
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store

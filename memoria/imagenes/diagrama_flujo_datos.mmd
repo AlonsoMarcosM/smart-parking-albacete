@@ -1,0 +1,28 @@
+flowchart TB
+    classDef input fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
+    classDef process fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
+    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
+    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
+    classDef note fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+
+    A["1. Sensor / simulador<br/>detecta estado de plaza"]:::input
+    B["2. Publicación MQTT/TLS<br/><code>parking/+/spot/+/status</code>"]:::process
+    C["3. AWS IoT Core<br/>autentica y enruta"]:::process
+    D["4. Lambda ingest<br/>valida y normaliza payload"]:::process
+    E[("5. DynamoDB state<br/>estado actual por spotId")]:::data
+    F["6. Lambda aggregator<br/>recalcula zona afectada"]:::process
+    G[("7. DynamoDB zone-kpis<br/>serie temporal de agregados")]:::data
+    H["8. API Gateway + Lambda api<br/>consulta y formatea"]:::api
+    I["9. Dashboard / tercero<br/>recibe JSON o GeoJSON"]:::input
+    N["Sin matrículas ni datos personales:<br/>solo estado de plaza y KPIs agregados"]:::note
+
+    A --> B --> C --> D
+    D -->|"UPSERT"| E
+    D -->|"invoke async"| F
+    F -->|"lee zona"| E
+    F -->|"guarda KPIs"| G
+    I -->|"HTTPS"| H
+    H --> E
+    H --> G
+    H -->|"respuesta"| I
+    D -.-> N

@@ -51,7 +51,7 @@ Trabajo final de la asignatura **Internet de las Cosas y sus Aplicaciones** del 
 | Vista | Descripción |
 |---|---|
 | Dashboard Streamlit | KPIs de ocupación, mapa pydeck con las 40 plazas, serie temporal por sub-zona |
-| AWS IoT Core | 40 *Things* `ALB-Zx-NNN`, certificado X.509 compartido y *Topic Rule* SQL `parking/+/state` |
+| AWS IoT Core | 40 *Things* `ALB-Zx-NNN`, certificado X.509 compartido y *Topic Rule* SQL `parking/+/spot/+/status` |
 | DynamoDB | Tabla de estado (`spotId`) + tabla de KPIs como serie temporal (`zoneId` + `windowEnd`) |
 | API Gateway | 4 endpoints REST documentados con OpenAPI 3.0, soporte GeoJSON RFC 7946 |
 
@@ -59,46 +59,113 @@ Trabajo final de la asignatura **Internet de las Cosas y sus Aplicaciones** del 
 
 ## 3. Arquitectura
 
+```mermaid
+flowchart TB
+    classDef sensor fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
+    classDef aws fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+    classDef compute fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
+    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
+    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
+
+    subgraph Edge["Capa de telemetría / borde"]
+        direction LR
+        SIM["Simulador Python<br/>40 plazas"]:::sensor
+        REAL["Sensor AMR magnético<br/>(diseño producción)"]:::sensor
+    end
+
+    subgraph AWS["AWS Academy Learner Lab / AWS Cloud"]
+        direction TB
+        IOT["AWS IoT Core<br/>MQTT + mTLS + Things"]:::aws
+        RULE["IoT Topic Rule<br/><code>parking/+/spot/+/status</code>"]:::aws
+        ING["Lambda ingest<br/>normaliza eventos"]:::compute
+        STATE[("DynamoDB<br/>parking-state")]:::data
+        AGG["Lambda aggregator<br/>KPIs por zona"]:::compute
+        KPIS[("DynamoDB<br/>zone-kpis")]:::data
+        APIGW["API Gateway REST<br/>OpenAPI + GeoJSON"]:::api
+        LAPI["Lambda api<br/>lectura para clientes"]:::compute
+    end
+
+    subgraph Consumers["Consumo de datos"]
+        direction LR
+        DASH["Dashboard Streamlit<br/>mapa + KPIs"]:::sensor
+        EXT["Apps / paneles / movilidad<br/>cliente externo HTTPS"]:::sensor
+    end
+
+    SIM -->|"MQTT/TLS + X.509"| IOT
+    REAL -. "NB-IoT en despliegue real" .-> IOT
+    IOT --> RULE --> ING
+    ING -->|"invoke async por zoneId"| AGG
+    AGG -->|"serie temporal"| KPIS
+    ING -->|"UPSERT por spotId"| STATE
+    AGG -->|"scan/query zona"| STATE
+    APIGW --> LAPI
+    LAPI --> STATE
+    LAPI --> KPIS
+    Consumers -->|"HTTPS"| APIGW
 ```
-                                  +---------------------+
-   +--------------+    MQTT/TLS   |  AWS IoT Core       |   IoT Topic Rule (SQL)
-   | Simulador    | ============> |  Things (40)        | -----------------+
-   | Python paho  |  X.509 mTLS   |  Cert X.509         |                  |
-   +--------------+               |  IoT Policy         |                  v
-                                  +---------------------+         +-----------------+
-                                                                  | Lambda ingest   |
-                                                                  +-----------------+
-                                                                          |
-                                                                  UPSERT  v
-                                                                  +-----------------+
-                                                                  | DynamoDB        |
-                                                                  | parking-state   |
-                                                                  +-----------------+
-                                                                          ^
-                                                                          | invoke async
-                                                                          |
-                                                                  +-----------------+
-                                                                  | Lambda          |
-                                                                  | aggregator      |
-                                                                  +-----------------+
-                                                                          |
-                                                                          v
-                                                                  +-----------------+
-                                                                  | DynamoDB        |
-                                                                  | zone-kpis (TS)  |
-                                                                  +-----------------+
-                                                                          ^
-                                  +-----------------+                     |
-                                  | API Gateway     | <-------------------+
-                                  | REST + OpenAPI  |        +-----------------+
-                                  +-----------------+ -----> | Streamlit       |
-                                          ^                  | Dashboard       |
-                                          |                  +-----------------+
-                                  +-----------------+
-                                  | Cliente externo |
-                                  | (curl, app,     |
-                                  |  vehículo C-V2X)|
-                                  +-----------------+
+
+### Flujo de datos
+
+```mermaid
+flowchart TB
+    classDef input fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
+    classDef process fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
+    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
+    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
+    classDef note fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+
+    A["1. Sensor / simulador<br/>detecta estado de plaza"]:::input
+    B["2. Publicación MQTT/TLS<br/><code>parking/+/spot/+/status</code>"]:::process
+    C["3. AWS IoT Core<br/>autentica y enruta"]:::process
+    D["4. Lambda ingest<br/>valida y normaliza payload"]:::process
+    E[("5. DynamoDB state<br/>estado actual por spotId")]:::data
+    F["6. Lambda aggregator<br/>recalcula zona afectada"]:::process
+    G[("7. DynamoDB zone-kpis<br/>serie temporal de agregados")]:::data
+    H["8. API Gateway + Lambda api<br/>consulta y formatea"]:::api
+    I["9. Dashboard / tercero<br/>recibe JSON o GeoJSON"]:::input
+    N["Sin matrículas ni datos personales:<br/>solo estado de plaza y KPIs agregados"]:::note
+
+    A --> B --> C --> D
+    D -->|"UPSERT"| E
+    D -->|"invoke async"| F
+    F -->|"lee zona"| E
+    F -->|"guarda KPIs"| G
+    I -->|"HTTPS"| H
+    H --> E
+    H --> G
+    H -->|"respuesta"| I
+    D -.-> N
+```
+
+### Escalado
+
+```mermaid
+flowchart LR
+    classDef base fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
+    classDef upgrade fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
+    classDef target fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
+    classDef risk fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+
+    P["Piloto académico<br/>40 plazas simuladas"]:::base
+    R["Piloto urbano<br/>~500 plazas"]:::base
+    Z["Particionado por zonas<br/>campus, deportivo, sanitario, residencial"]:::risk
+
+    F["Fleet provisioning<br/>certificado por sensor"]:::upgrade
+    K["Kinesis / buffer<br/>para picos"]:::upgrade
+    G["DynamoDB con GSI<br/>zona + estado"]:::upgrade
+    H["Histórico<br/>S3 o Timestream"]:::upgrade
+    S["API endurecida<br/>WAF + cuotas + auth"]:::upgrade
+    O["Operación municipal<br/>alertas + inventario"]:::upgrade
+
+    C["Escenario ciudad<br/>miles de plazas"]:::target
+
+    P --> R --> Z
+    Z --> F --> C
+    Z --> K --> C
+    Z --> G --> C
+    Z --> H --> C
+    Z --> S --> C
+    Z --> O --> C
 ```
 
 **Decisiones de diseño (resumen).** Todo lo que está a la derecha de IoT Core es infraestructura **serverless real** (paga por uso, multi-AZ por defecto, sin servidores que mantener). El simulador a la izquierda representa la flota física de **sensores magnéticos AMR** sobre **NB-IoT** — descartados explícitamente cámaras ANPR por plaza (privacidad, coste) y Sigfox (incertidumbre comercial). La justificación completa de cada elección está en `memoria/MEMORIA_TECNICA.pdf`.
@@ -112,7 +179,7 @@ Trabajo final de la asignatura **Internet de las Cosas y sus Aplicaciones** del 
 | Sensor (diseño) | Sensor magnético AMR | >5 años de pila, sin cámara → cumple RGPD, maduro en el sector |
 | Conectividad sensor (diseño) | NB-IoT | Cobertura LTE municipal sin desplegar nada propio, ~0,60 €/SIM/mes |
 | Ingesta | **AWS IoT Core** (MQTT 3.1.1 + mTLS) | *Broker* gestionado, autenticación X.509 por dispositivo |
-| Enrutado | **IoT Topic Rule** (SQL) | Filtra `parking/+/state` y dispara la Lambda de ingesta |
+| Enrutado | **IoT Topic Rule** (SQL) | Filtra `parking/+/spot/+/status` y dispara la Lambda de ingesta |
 | Procesamiento | **AWS Lambda** (Python 3.12) | Serverless puro; *ingest*, *aggregator* y *api handler* desacopladas |
 | Estado | **DynamoDB on-demand** — `parking-state` | Latencia ms, absorbe picos sin *throttling* |
 | Histórico / KPIs | **DynamoDB on-demand** — `zone-kpis` | PK `zoneId` + SK `windowEnd` → serie temporal nativa |
@@ -127,13 +194,13 @@ Trabajo final de la asignatura **Internet de las Cosas y sus Aplicaciones** del 
 ## 5. Características clave
 
 - **Despliegue 100 % serverless reproducible** desde cero en ~3 minutos con cuatro scripts (`01_setup_iot_core` → `04_setup_api_gateway`).
-- **Seguridad por defecto**: mTLS con certificado X.509 por dispositivo y *IoT Policy* restringida al patrón de *topic* `parking/${iot:ClientId}/state`.
+- **Seguridad por defecto**: mTLS con certificado X.509 y *IoT Policy* restringida a los topics del proyecto (`parking/*` en el piloto; certificado individual por dispositivo en producción).
 - **Idempotencia**: cualquier script se puede relanzar sin generar recursos duplicados; el estado del despliegue queda persistido en `infra/infra_state.json`.
 - **API estándar y documentada**: especificación OpenAPI 3.0 + soporte GeoJSON RFC 7946 para integración directa con visores cartográficos (Leaflet, MapLibre, `geojson.io`).
 - **Dashboard auto-configurado**: lee la URL de la API publicada y arranca sin parámetros.
 - **Simulador con patrones realistas**: cada sub-zona tiene un perfil de ocupación distinto (campus, deportivo, hospital, residencial) y simula incluso un sensor caído para ilustrar detección de averías.
 - **Teardown limpio**: un único script (`99_teardown.py`) borra en orden seguro toda la infraestructura desplegada.
-- **Memoria técnica completa**: 14 capítulos / 66 páginas / ~14 000 palabras en PDF (LaTeX + xelatex).
+- **Memoria técnica completa**: memoria en Markdown, LaTeX y PDF, con diagramas y separación entre prototipo implementado y diseño de producción.
 
 ---
 
@@ -151,33 +218,38 @@ Trabajo final de la asignatura **Internet de las Cosas y sus Aplicaciones** del 
 
 ## 7. Estructura del repositorio
 
-```
+```text
 proyectofinal/
-├── README.md                           ← este documento (portfolio)
-├── memoria/
-│   ├── MEMORIA_TECNICA.md              ← memoria unificada (Markdown)
-│   ├── MEMORIA_TECNICA.tex             ← versión LaTeX
-│   └── MEMORIA_TECNICA.pdf             ← PDF final (66 páginas)
-└── prototipo/
-    ├── README.md
-    ├── requirements.txt
-    ├── infra/                          ← infraestructura como código (boto3)
-    │   ├── common.py
-    │   ├── 01_setup_iot_core.py        ← Things + certificado + IoT Policy
-    │   ├── 02_setup_dynamodb.py        ← 2 tablas on-demand
-    │   ├── 03_setup_lambda.py          ← 3 Lambdas + Topic Rule
-    │   ├── 04_setup_api_gateway.py     ← REST API + stage prod
-    │   ├── 99_teardown.py              ← desmantelamiento limpio
-    │   └── parking_zone_seed.json      ← 40 plazas reales (lat/lon)
-    ├── simulator/
-    │   ├── parking_sensor.py           ← cliente MQTT/TLS por plaza
-    │   └── fleet_runner.py             ← orquestador de N sensores
-    ├── lambdas/
-    │   ├── ingest/handler.py           ← UPSERT en parking-state
-    │   ├── aggregator/handler.py       ← KPIs por sub-zona
-    │   └── api/handler.py              ← Lambda integrada en API Gateway
-    ├── api/openapi.yaml                ← especificación OpenAPI 3.0
-    └── dashboard/streamlit_app.py      ← dashboard con mapa pydeck
+|-- README.md                           <- este documento
+|-- memoria/
+|   |-- MEMORIA_TECNICA.md              <- memoria unificada en Markdown
+|   |-- MEMORIA_TECNICA.tex             <- version LaTeX
+|   |-- MEMORIA_TECNICA.pdf             <- PDF final
+|   `-- imagenes/
+|       |-- bbox.png
+|       |-- diagrama_arquitectura.png
+|       |-- diagrama_flujo_datos.png
+|       `-- diagrama_escalado.png
+`-- prototipo/
+    |-- README.md
+    |-- requirements.txt
+    |-- infra/                          <- infraestructura como codigo (boto3)
+    |   |-- common.py
+    |   |-- 01_setup_iot_core.py        <- Things + certificado + IoT Policy
+    |   |-- 02_setup_dynamodb.py        <- 2 tablas on-demand
+    |   |-- 03_setup_lambda.py          <- 3 Lambdas + Topic Rule
+    |   |-- 04_setup_api_gateway.py     <- REST API + stage prod
+    |   |-- 99_teardown.py              <- desmantelamiento limpio
+    |   `-- parking_zone_seed.json      <- 40 plazas reales (lat/lon)
+    |-- simulator/
+    |   |-- parking_sensor.py           <- cliente MQTT/TLS por plaza
+    |   `-- fleet_runner.py             <- orquestador de N sensores
+    |-- lambdas/
+    |   |-- ingest/handler.py           <- UPSERT en parking-state
+    |   |-- aggregator/handler.py       <- KPIs por sub-zona
+    |   `-- api/handler.py              <- Lambda integrada en API Gateway
+    |-- api/openapi.yaml                <- especificacion OpenAPI 3.0
+    `-- dashboard/streamlit_app.py      <- dashboard con mapa pydeck
 ```
 
 ---
@@ -310,7 +382,7 @@ Detalle completo en el capítulo 12 de la memoria técnica.
 
 ## 13. Documentación técnica completa
 
-La memoria técnica (66 páginas, PDF compilado con xelatex) cubre en detalle:
+La memoria técnica (PDF compilado con xelatex) cubre en detalle:
 
 | Capítulo | Contenido |
 |---|---|

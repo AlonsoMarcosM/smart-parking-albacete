@@ -1,591 +1,654 @@
 \documentclass[11pt,a4paper]{article}
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
+\usepackage{fontspec}
 \usepackage[spanish,es-tabla]{babel}
-\usepackage[margin=2.2cm,top=2.2cm,bottom=2.2cm]{geometry}
-\usepackage{lmodern}
+\usepackage[a4paper,margin=2.35cm,top=2.2cm,bottom=2.35cm]{geometry}
 \usepackage{microtype}
-\usepackage{longtable,booktabs,array}
-\usepackage{enumitem}
-\setlist{nosep,leftmargin=*}
 \usepackage{xcolor}
-\usepackage{hyperref}
-\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue}
-\usepackage{titlesec}
-\titleformat{\section}{\normalfont\Large\bfseries}{\thesection.}{0.6em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.6em}{}
-\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{0.6em}{}
-\titlespacing*{\section}{0pt}{1.0ex plus 0.2ex minus .1ex}{0.6ex plus 0.1ex}
-\titlespacing*{\subsection}{0pt}{0.7ex plus 0.2ex minus .1ex}{0.4ex plus 0.1ex}
-\titlespacing*{\subsubsection}{0pt}{0.5ex plus 0.2ex minus .1ex}{0.3ex plus 0.1ex}
-\setlength{\parskip}{4pt plus 1pt minus 1pt}
-\setlength{\parindent}{0pt}
-\renewcommand{\arraystretch}{1.05}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
 \usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+
+\definecolor{azulUCLM}{HTML}{174A7C}
+\definecolor{grisTexto}{HTML}{333333}
+\definecolor{grisClaro}{HTML}{F4F6F8}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=azulUCLM,
+  urlcolor=azulUCLM,
+  citecolor=azulUCLM,
+  pdftitle={Memoria técnica - Smart Parking Albacete},
+  pdfauthor={alonso.marcos@alu.uclm.es}
+}
+
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small Smart Parking Albacete -- TECO S.L.}
+\fancyhead[L]{\small Smart Parking Albacete}
 \fancyhead[R]{\small \thepage}
 \renewcommand{\headrulewidth}{0.3pt}
-\usepackage{graphicx}
-\usepackage{caption}
-\captionsetup[figure]{font=small,labelfont=bf,skip=4pt}
-\usepackage{listings}
+
+\titleformat{\section}{\Large\bfseries\color{azulUCLM}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries\color{grisTexto}}{\thesubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{1.4ex plus .2ex}{0.8ex}
+\titlespacing*{\subsection}{0pt}{1.0ex plus .2ex}{0.5ex}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlist{leftmargin=*,nosep}
+\renewcommand{\arraystretch}{1.16}
+\captionsetup{font=small,labelfont=bf}
+
 \lstset{
   basicstyle=\ttfamily\footnotesize,
   breaklines=true,
-  columns=fullflexible,
   frame=single,
-  framesep=3pt,
-  xleftmargin=0pt,
-  belowskip=4pt,
-  aboveskip=4pt,
+  backgroundcolor=\color{grisClaro},
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false
 }
 
-\title{\vspace{-1.5cm}\Large \textbf{Proyecto Final -- Smart Parking Albacete}\\[2pt]
-\large Internet de las Cosas y sus Aplicaciones (cód.\ 311482)}
-\author{alonso.marcos@alu.uclm.es \\ Máster en Big Data y Computación en la Nube -- UCLM}
-\date{Mayo 2026}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 \begin{document}
-\maketitle
-\vspace{-0.8cm}
+
+\begin{titlepage}
+\centering
+{\Large Universidad de Castilla-La Mancha\par}
+\vspace{0.5cm}
+{\large Máster Universitario en Big Data y Computación en la Nube\par}
+\vspace{2.2cm}
+{\Huge\bfseries Memoria técnica\par}
+\vspace{0.4cm}
+{\LARGE Smart Parking Albacete\par}
+\vspace{0.8cm}
+{\large Internet de las Cosas y sus Aplicaciones\par}
+\vfill
+\begin{tabular}{rl}
+Autor: & alonso.marcos@alu.uclm.es \\
+Cliente ficticio: & TECO S.L. \\
+Cliente final: & Ayuntamiento de Albacete \\
+Fecha: & Mayo 2026 \\
+\end{tabular}
+\vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
 
 \section*{0. Resumen ejecutivo}
 \addcontentsline{toc}{section}{0. Resumen ejecutivo}
 
-El Ayuntamiento de Albacete licita una solución de \textbf{smart parking} que monitorice en tiempo real las plazas del entorno universitario (BBOX \texttt{38.976059, -1.858728 $\rightarrow$ 38.983215, -1.846111}, $\approx$ 0,55 km$^2$) y exponga la disponibilidad a apps de movilidad, vehículos autónomos (vía C-V2X) y paneles informativos. TECO S.L.\ (rol del autor) responde con una arquitectura end-to-end en cuatro capas: (1) sensórica magnética AMR por plaza más cámaras ANPR puntuales en accesos; (2) conectividad NB-IoT como red principal y LoRaWAN/5G como complementos; (3) plataforma cloud AWS serverless (IoT Core + Lambda + DynamoDB + API Gateway); (4) aplicaciones API REST OpenAPI 3.0 (salida GeoJSON) y dashboard Streamlit.
+Este proyecto plantea una solución IoT de \textbf{aparcamiento inteligente} para una zona piloto del entorno universitario de Albacete. El caso de uso parte de una licitación ficticia del Ayuntamiento de Albacete y de una respuesta técnica de TECO S.L. El objetivo no es solo contar cuántas plazas están libres, sino diseñar una arquitectura completa capaz de recoger datos desde sensores, procesarlos, mantener el estado actualizado de cada plaza y exponer esa información a aplicaciones externas, paneles urbanos o futuros sistemas de movilidad conectada.
 
-El prototipo cubre el flujo extremo a extremo con 40 plazas simuladas en 4 sub-zonas reales (Z1-CAMPUS, Z2-DEPORTIVO, Z3-SANITARIO, Z4-RESIDENCIAL), desplegado en AWS Academy Learner Lab con scripts boto3 idempotentes. La latencia medida sensor$\rightarrow$API es \textbf{$<$ 2 s}, el coste cloud del piloto \textbf{$<$ 5 USD/mes} y la arquitectura escala linealmente a 10\,000 plazas con coste cloud aproximado de \textbf{6 céntimos/plaza/mes}.
+La zona de trabajo se sitúa alrededor del Campus de la UCLM, el Estadio Carlos Belmonte, el Hospital Universitario y varias calles residenciales cercanas. Para el prototipo se han usado 40 plazas simuladas con coordenadas reales dentro de la BBOX \texttt{38.976059, -1.858728 -> 38.983215, -1.846111}. Estas plazas se agrupan en cuatro subzonas: \texttt{Z1-CAMPUS}, \texttt{Z2-DEPORTIVO}, \texttt{Z3-SANITARIO} y \texttt{Z4-RESIDENCIAL}. Esta división permite representar patrones distintos de ocupación: horarios universitarios, eventos deportivos, demanda sanitaria más constante y uso residencial.
 
-\section{Descripción del problema y entorno}
+La solución diseñada usa sensores magnéticos AMR como tecnología principal de detección por plaza, conectividad NB-IoT como opción recomendada para un despliegue real y una plataforma cloud basada en AWS. El prototipo incluido en el repositorio implementa el flujo de datos con simuladores Python que publican eventos MQTT/TLS, AWS IoT Core como punto de entrada, una regla IoT que activa una Lambda de ingesta, DynamoDB como estado operacional, otra Lambda para agregados por zona, API Gateway para consulta externa y un dashboard Streamlit para visualizar el estado de las plazas.
 
-\subsection{Contexto}
-Entre el 15\,\% y el 30\,\% del tráfico urbano (Shoup, 2005) lo generan vehículos buscando aparcamiento, con impacto directo en tiempo, emisiones y confort. Albacete ($\approx$ 175\,000 hab.) propone como piloto el corredor entre Campus UCLM, Estadio Carlos Belmonte, Hospital Universitario y la zona residencial sur de la AB-20, alineado con el Pacto Verde Europeo y la llegada de la movilidad autónoma.
+La memoria distingue en todo momento entre lo que está implementado y lo que forma parte del diseño de producción. En el prototipo están los scripts de infraestructura, las funciones Lambda, la API OpenAPI, el simulador y el dashboard. En el diseño de producción se describen elementos como certificados individuales por sensor, endurecimiento de la API, uso de edge computing, posible integración FIWARE y escalado a miles de plazas.
 
-\subsection{Actores y zona piloto}
-\begin{longtable}{ll}
+\section{Contexto y problema a resolver}
+
+Buscar aparcamiento en zonas con alta demanda genera tráfico innecesario, pérdida de tiempo y más emisiones. En un entorno como el universitario de Albacete este problema se concentra en franjas claras: entradas y salidas de clase, actividad del hospital, eventos deportivos y horarios residenciales. Un sistema de smart parking permite reducir parte de esa incertidumbre mostrando, con baja latencia, qué plazas o zonas tienen mayor disponibilidad.
+
+El sistema propuesto debe funcionar como una pieza de una ciudad inteligente. Por eso no se limita a un panel interno, sino que contempla una API para terceros. Esa API podría ser usada por aplicaciones móviles, sistemas municipales, paneles informativos o, en una fase futura, vehículos conectados y servicios C-V2X. La información que se comparte no identifica personas ni vehículos; se centra en el estado de ocupación de cada plaza y en agregados por zona.
+
+El proyecto tiene dos niveles de alcance. El primero es el piloto, suficiente para validar el flujo extremo a extremo con un número reducido de plazas y una arquitectura realista. El segundo es el escenario ciudad, donde se analiza cómo crecer desde cientos hasta miles de plazas sin rediseñar el sistema desde cero.
+
+\subsection{Supuestos de partida}
+
+Para que la propuesta sea defendible, se fijan supuestos explícitos. No son datos oficiales del Ayuntamiento, sino hipótesis razonables para dimensionar el piloto y explicar por qué la arquitectura elegida tiene sentido.
+
+\begin{longtable}{P{4.4cm}P{4cm}P{6.3cm}}
 \toprule
-\textbf{Actor} & \textbf{Rol} \\ \midrule
+\textbf{Supuesto} & \textbf{Valor usado} & \textbf{Motivo} \\
+\midrule
 \endhead
-Ayuntamiento de Albacete & Cliente final / licitador \\
-TECO S.L. & Adjudicatario (autor) \\
-Concejalía de Movilidad & Explota KPIs municipales \\
-Vehículos autónomos / OEM & Consumidores futuros vía API + C-V2X \\
-Operador ANPR & Provee vídeo en accesos \\
+Plazas del piloto real & Aproximadamente 500 & Tamaño manejable para una primera fase urbana \\
+Plazas del prototipo & 40 & Límite suficiente para demostrar el flujo completo \\
+Subzonas & 4 & Permite comparar patrones de uso distintos \\
+Envío de eventos & Cambio de estado y heartbeat & Reduce tráfico y mantiene control de vida del sensor \\
+Latencia objetivo & Pocos segundos & Adecuada para guiado urbano y consulta por API \\
+Datos personales & No almacenados & El sistema trabaja con plazas, no con personas \\
 \bottomrule
 \end{longtable}
 
-\noindent Sub-zonas operativas: \textbf{Z1-CAMPUS} (UCLM, picos 7:30-10:00 y 16-18 h), \textbf{Z2-DEPORTIVO} (Estadio Belmonte $\approx$ 17\,500 espectadores, correlación con calendario), \textbf{Z3-SANITARIO} (Hospital + Facultades, demanda 24/7) y \textbf{Z4-RESIDENCIAL} (Av.\ Mancha y Olimpia, patrón nocturno).
+El prototipo no pretende demostrar la precisión física del sensor magnético, porque no hay hardware desplegado. Lo que valida es la cadena software: generación de eventos, transmisión segura, procesado, persistencia, API y visualización.
 
-\begin{figure}[h!]
+\subsection{Actores}
+\begin{longtable}{P{4.2cm}P{10.5cm}}
+\toprule
+\textbf{Actor} & \textbf{Papel dentro del proyecto} \\
+\midrule
+\endhead
+Ayuntamiento de Albacete & Cliente final y responsable del servicio urbano \\
+TECO S.L. & Empresa ficticia que diseña la solución \\
+Operador municipal & Usuario del dashboard y responsable de supervisar el servicio \\
+Conductores y ciudadanía & Beneficiarios indirectos de la información de disponibilidad \\
+Plataformas de movilidad & Consumidores externos de la API \\
+Vehículos conectados & Integración futura mediante API y, si procede, C-V2X \\
+\bottomrule
+\end{longtable}
+
+\subsection{Zona piloto}
+
+La zona piloto cubre aproximadamente el entorno universitario y áreas próximas. No se pretende cartografiar toda la ciudad en esta fase, sino validar el sistema en un área suficientemente variada. La BBOX usada en el prototipo es:
+
+\begin{lstlisting}
+SW: 38.976059, -1.858728
+NE: 38.983215, -1.846111
+\end{lstlisting}
+
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{imagenes/bbox.png}
-\caption{Bounding box de la zona piloto sobre el entorno universitario de Albacete (BBOX \texttt{38.976059, -1.858728 $\rightarrow$ 38.983215, -1.846111}, $\approx$ 0,55 km$^2$). Fuente: bboxfinder.com.}
-\label{fig:bbox}
+\includegraphics[width=0.86\textwidth]{imagenes/bbox.png}
+\caption{Zona piloto del entorno universitario de Albacete.}
 \end{figure}
 
-\subsection{Supuestos realistas}
-\begin{longtable}{lll}
+\begin{longtable}{P{3.2cm}P{5.4cm}P{6cm}}
 \toprule
-\textbf{Supuesto} & \textbf{Valor} & \textbf{Justificación} \\ \midrule
+\textbf{Zona} & \textbf{Descripción} & \textbf{Patrón esperado} \\
+\midrule
 \endhead
-Plazas piloto & $\approx$ 500 & BBOX 800$\times$800 m, aparcamiento en cordón \\
-Plazas/sub-zona & $\sim$125 & Equilibrio simplicidad / representatividad \\
-Rotación diaria & 4-8 (Z3), 3-5 (Z1), 1-3 (Z4), picos (Z2) & Datos comparables españoles \\
-Cobertura NB-IoT & 100\,\% en la BBOX & Operadores nacionales con LTE completo \\
-Disponibilidad piloto & 99,5\,\% & Objetivo productivo 99,9\,\% \\
-Latencia E2E objetivo & $\leq$ 5 s & Compatible con guía humana y C-V2X \\
-Cadencia & 1 evento/cambio + HB 5 min & Minimiza OPEX LPWAN \\
-Vida útil sensor & 5-7 años & Habitual AMR comerciales \\
+\texttt{Z1-CAMPUS} & Calles del entorno universitario & Alta ocupación en horas lectivas \\
+\texttt{Z2-DEPORTIVO} & Estadio y alrededores & Picos fuertes en eventos \\
+\texttt{Z3-SANITARIO} & Hospital y facultades cercanas & Demanda más estable durante el día \\
+\texttt{Z4-RESIDENCIAL} & Calles residenciales del sur & Mayor ocupación nocturna \\
 \bottomrule
 \end{longtable}
 
-\subsection{Restricciones y riesgos identificados}
-Imposibilidad legal de cubrir cada plaza con cámaras (RGPD); instalación bajo asfalto con corte nocturno; rango térmico -5/+40\,$^\circ$C (sensores IP68); cohabitación con otros servicios IoT municipales; una sola región AWS (\texttt{us-east-1}) por las 3 h del AWS Academy Learner Lab.
+La elección de estas zonas ayuda a defender el proyecto porque evita un piloto artificial con plazas idénticas. Un sistema real debe comportarse bien tanto en una calle universitaria con mucha rotación como en una zona residencial con cambios más lentos o en un entorno deportivo con picos concentrados. La arquitectura propuesta no necesita reglas distintas por zona: cada sensor publica el mismo tipo de evento y la diferencia se observa después en los KPIs.
 
-\begin{longtable}{p{5.0cm}p{1.6cm}p{1.5cm}p{6.0cm}}
+\section{Requisitos del sistema}
+
+El sistema debe resolver una necesidad sencilla de expresar pero exigente en la práctica: conocer si una plaza está libre u ocupada y hacer que ese dato llegue a usuarios o sistemas externos de forma fiable. Para lograrlo se definen requisitos funcionales y no funcionales.
+
+\subsection{Requisitos funcionales}
+\begin{longtable}{P{1.6cm}P{5.6cm}P{7.5cm}}
 \toprule
-\textbf{Riesgo} & \textbf{Prob.} & \textbf{Imp.} & \textbf{Mitigación} \\ \midrule
+\textbf{ID} & \textbf{Requisito} & \textbf{Cómo se cubre en el proyecto} \\
+\midrule
 \endhead
-Falsos positivos AMR por motos cercanas & Media & Bajo & Debounce edge + umbral de \texttt{confidence} \\
-Pérdida cobertura NB-IoT puntual & Baja & Medio & Buffer local + reintento exponencial \\
-Sensores robados / vandalizados & Baja & Bajo & Caja blindada, alarma, coste unitario bajo \\
-Saturación API en eventos deportivos & Media & Medio & Throttling API GW + caché ante terceros \\
-Fuga de datos personales & Muy baja & Alto & Política sin matrícula ni PII \\
-Caducidad credenciales lab (3 h) & Alta (acad.) & Alto & Scripts idempotentes, teardown rápido \\
+RF-01 & Detectar si una plaza está libre u ocupada & En diseño, sensor AMR por plaza; en prototipo, simulador de sensores \\
+RF-02 & Asociar cada dato a una plaza y una zona & Campos \texttt{spotId} y \texttt{zoneId} en cada evento \\
+RF-03 & Transmitir eventos desde los nodos & MQTT/TLS hacia AWS IoT Core \\
+RF-04 & Mantener el estado actual & Tabla DynamoDB \texttt{smart-parking-albacete-state} \\
+RF-05 & Mostrar disponibilidad & Dashboard Streamlit con mapa, KPIs y tabla \\
+RF-06 & Exponer datos a terceros & API REST mediante API Gateway \\
+RF-07 & Consultar por zona & Parámetro \texttt{zone} y endpoint \texttt{/zones} \\
+RF-08 & Ofrecer salida cartográfica & Respuesta GeoJSON en \texttt{/spots?format=geojson} \\
+RF-09 & Generar agregados & Lambda agregadora y tabla \texttt{zone-kpis} \\
+RF-10 & Permitir análisis posterior & Serie temporal de KPIs por zona \\
 \bottomrule
 \end{longtable}
 
-\section{Requisitos}
-
-\subsection{Funcionales}
-\begin{longtable}{lp{6.4cm}p{6.6cm}}
+\subsection{Requisitos no funcionales}
+\begin{longtable}{P{1.6cm}P{5.6cm}P{7.5cm}}
 \toprule
-\textbf{ID} & \textbf{Requisito} & \textbf{Criterio de aceptación} \\ \midrule
+\textbf{ID} & \textbf{Requisito} & \textbf{Enfoque adoptado} \\
+\midrule
 \endhead
-RF-01 & Detectar libre/ocupada por plaza & Reflejo en almacén operacional $\leq$ 5 s \\
-RF-02 & Asociar evento a plaza y sub-zona & Payload con \texttt{spotId} y \texttt{zoneId} \\
-RF-03 & Transmitir desde sensor/simulador & MQTT/TLS contra AWS IoT Core \\
-RF-04 & Mantener estado actual & Tabla DynamoDB \texttt{parking-state} \\
-RF-05 & Dashboard de disponibilidad & Streamlit, refresco $\leq$ 10 s \\
-RF-06 & API REST para terceros & API Gateway + OpenAPI 3.0 \\
-RF-07 & Análisis por sub-zona & Parámetro \texttt{?zone=}, endpoint \texttt{/zones} \\
-RF-08 & Salida cartográfica & \texttt{?format=geojson} (RFC 7946) \\
-RF-09 & Agregados libres/ocupadas/\% & Lambda agregador actualiza \texttt{zone-kpis} \\
-RF-10 & Histórico operacional & Serie temporal en \texttt{zone-kpis} \\
-RF-11 & Detectar sensores caídos & Auditoría de \texttt{lastUpdated} (alerta: futuro) \\
+RNF-01 & Baja latencia & Procesamiento por evento con IoT Core, Lambda y DynamoDB \\
+RNF-02 & Escalabilidad & Servicios serverless y crecimiento por zonas \\
+RNF-03 & Fiabilidad & Heartbeats, estado \texttt{unknown} y diseño con reintentos \\
+RNF-04 & Seguridad & MQTT/TLS, certificados X.509, HTTPS e IAM \\
+RNF-05 & Privacidad & No se almacenan matrículas ni datos personales \\
+RNF-06 & Coste controlado & Sensores de bajo consumo y cloud de pago por uso \\
+RNF-07 & Mantenibilidad & Scripts idempotentes y componentes separados \\
+RNF-08 & Interoperabilidad & API REST, OpenAPI y salida GeoJSON \\
 \bottomrule
 \end{longtable}
 
-\subsection{No funcionales}
-\begin{longtable}{lp{6.4cm}p{6.6cm}}
-\toprule
-\textbf{ID} & \textbf{Requisito} & \textbf{Criterio} \\ \midrule
-\endhead
-RNF-01 & Latencia E2E $\leq$ 5 s & Medido $\leq$ 2 s \\
-RNF-02 & API p95 $\leq$ 1 s & Verificado \\
-RNF-03 & $\geq$ 10 eventos/s sin throttling & DynamoDB on-demand \\
-RNF-04 & Escala 500 $\rightarrow$ 10\,000 sin rediseño & Plan en cap.\ 8 \\
-RNF-05 & Servicios serverless/gestionados & IoT Core, Lambda, DynamoDB, API GW \\
-RNF-06 & Disponibilidad $\geq$ 99,5\,\% & SLA IoT Core 99,9\,\%, Lambda 99,95\,\% \\
-RNF-07 & Tolerar pérdida temporal de red & Backoff MQTT + buffer local \\
-RNF-08 & Cifrado en tránsito & MQTT/TLS 1.2 mTLS, HTTPS \\
-RNF-09 & Identidad por dispositivo & Thing + certificado X.509 \\
-RNF-10 & Throttling API & API Gateway + API keys \\
-RNF-11 & Sin PII & Modelo sin matrícula \\
-RNF-12 & Despliegue reproducible & Scripts boto3 idempotentes \\
-RNF-13 & Coste cloud piloto $<$ 10 USD/mes & Estimación cap.\ 9 \\
-RNF-14 & API autodescriptiva & OpenAPI 3.0.1 + GeoJSON \\
-RNF-15 & Cumplimiento RGPD & Cap.\ 7 \\
-\bottomrule
-\end{longtable}
+\subsection{Restricciones}
 
-\noindent\textbf{Restricciones impuestas:} \texttt{RST-01} AWS obligatorio; \texttt{RST-02} credenciales lab 3 h; \texttt{RST-03} solo \texttt{LabRole}; \texttt{RST-04} defensa oral; \texttt{RST-05} documentación en castellano; \texttt{RST-06} Windows estándar del autor.
+El enunciado exige una arquitectura cloud con AWS. El prototipo se ajusta a esa condición usando servicios gestionados de AWS. Además, el entorno AWS Academy Learner Lab limita algunos aspectos: las credenciales caducan, el rol disponible es \texttt{LabRole} y no conviene dejar recursos desplegados tras la prueba. Por eso el repositorio incluye scripts de despliegue y un script \texttt{99\_teardown.py} para limpiar la infraestructura.
 
 \section{Capa de telemetría}
 
-\subsection{Comparativa de tecnologías y productos de referencia}
-\begin{longtable}{p{2.0cm}p{3.4cm}p{1.6cm}p{1.6cm}p{1.8cm}p{2.0cm}p{1.6cm}}
+La capa de telemetría es la parte que convierte una situación física, una plaza ocupada o libre, en un dato digital. La elección del sensor condiciona el coste, la privacidad, el mantenimiento y la fiabilidad del sistema, por lo que no conviene tratarla como un detalle secundario.
+
+\subsection{Alternativas consideradas}
+\begin{longtable}{P{3.1cm}P{4.2cm}P{4.2cm}P{3.1cm}}
 \toprule
-\textbf{Tec.} & \textbf{Producto comercial} & \textbf{Precisión} & \textbf{Coste/ud} & \textbf{Consumo} & \textbf{Clima} & \textbf{Privacidad} \\ \midrule
+\textbf{Tecnología} & \textbf{Ventajas} & \textbf{Inconvenientes} & \textbf{Valoración} \\
+\midrule
 \endhead
-AMR mag. & Nedap SENSIT, Smart Parking PS101, Bosch & $>$95\,\% & 60-120 € & 5-10 $\mu$A & Excelente IP68 & Muy alta \\
-Ultrasón. & Libelium Smart Parking, Worldsensing Fastprk-U & Alta int., baja ext. & 80-150 € & 0,5-1 mA & Media & Muy alta \\
-Radar mmW & TI IWR6843, Vayyar & Muy alta & 200-500 € & 5-50 mA (red) & Excelente & Alta \\
-LIDAR & Velodyne Puck, Quanergy M8 & Muy alta & 1500-5000 € & Decenas W & Buena & Alta \\
-Cám.\ ANPR & YOLO/EfficientDet sobre IP cam & Muy alta + matr. & 500-1200 € & Red & Media & \textbf{Baja} \\
+Sensor magnético AMR & Bajo consumo, discreto, no recoge imagen, adecuado para una plaza concreta & Requiere instalación en calzada y calibración & Opción principal \\
+Ultrasónico & Fácil de entender y habitual en parkings cubiertos & Peor comportamiento en exterior, necesita estructura de montaje & Menos adecuado en calle \\
+Radar & Preciso y robusto & Más caro y con mayor consumo & Interesante en puntos concretos \\
+LIDAR & Muy preciso para zonas amplias & Coste alto y complejidad innecesaria para el piloto & Descartado para plaza individual \\
+Cámara con visión artificial & Puede cubrir varias plazas y aportar contexto & Privacidad, iluminación, mantenimiento y tratamiento de imágenes & Solo como complemento en accesos \\
 \bottomrule
 \end{longtable}
 
-\subsection{Decisión razonada}
-Se adopta una \textbf{arquitectura híbrida}:
-\begin{itemize}
-\item \textbf{Sensor principal: AMR magnético bajo asfalto, uno por plaza.} Sellado IP68, calibración in situ, debounce 2-3 s, vida 5-7 años, $\approx$ 75 €/ud. Gana en consumo y coste a ultrasónico, radar y LIDAR, y en privacidad y simplicidad a la cámara.
-\item \textbf{Complementario: 6-8 cámaras ANPR puntuales} en accesos (N-430, C.\ San Juan, C.\ Imperial, Av.\ de la Mancha) para conteo agregado y futuro control de zonas de bajas emisiones; nunca para detección plaza a plaza (mitiga el riesgo RGPD).
-\item \textbf{Sensores ambientales} (NO$_2$, PM2.5, CO$_2$, ruido) 1 cada $\sim$150 plazas como analítica complementaria.
-\end{itemize}
+La opción recomendada es usar \textbf{sensores magnéticos AMR por plaza}. Detectan variaciones del campo magnético cuando un vehículo se sitúa encima o muy cerca del sensor. Son adecuados para aparcamiento en vía pública porque consumen poco, pueden ir sellados, no capturan imágenes y no necesitan alimentación eléctrica continua. Frente a una solución basada en cámaras, reducen el riesgo de privacidad y simplifican el cumplimiento RGPD.
 
-\subsection{Modelo del nodo y payload}
-Cada plaza es un \texttt{Thing} en AWS IoT Core con atributos \texttt{spotId, zoneId, street, lat, lon}. Payload MQTT (topic \texttt{parking/\{zoneId\}/spot/\{spotId\}/status}):
+Las cámaras ANPR o de visión artificial se plantean solo como apoyo en accesos o zonas estratégicas. Su papel sería contar flujos agregados o validar tendencias, no decidir el estado de cada plaza de forma individual. Esta separación evita que el sistema dependa de matrículas o imágenes para funcionar.
 
+\subsection{Nodo de plaza}
+\begin{longtable}{P{4.2cm}P{10.5cm}}
+\toprule
+\textbf{Elemento} & \textbf{Función} \\
+\midrule
+\endhead
+Sensor magnético & Detectar presencia o ausencia de vehículo \\
+Microcontrolador & Aplicar filtrado básico, debounce y gestión de energía \\
+Módulo de comunicaciones & Enviar eventos mediante NB-IoT o red equivalente \\
+Batería & Alimentación de larga duración \\
+Identidad lógica & Identificador de plaza, zona y credenciales \\
+\bottomrule
+\end{longtable}
+
+El prototipo sustituye el hardware por un simulador Python. Esa simulación no intenta emular la electrónica, sino demostrar el flujo IoT completo: generación de eventos, publicación MQTT/TLS, ingesta cloud, persistencia, API y dashboard.
+
+En una instalación real, el sensor debería calibrarse al instalarse. Esta calibración sirve para distinguir el campo magnético normal de la zona y el cambio producido por un vehículo. También sería necesario aplicar un pequeño tiempo de confirmación o \emph{debounce}, por ejemplo unos segundos, para evitar cambios falsos cuando un vehículo maniobra, se detiene brevemente o pasa muy cerca de la plaza.
+
+El mantenimiento de esta capa se basa en tres señales sencillas: último mensaje recibido, nivel de batería y confianza de la medición. Con ellas el operador puede distinguir entre una plaza realmente libre, una plaza ocupada y una plaza que no debe usarse para tomar decisiones porque el sensor no está reportando correctamente.
+
+\subsection{Payload de telemetría}
 \begin{lstlisting}
 {
-  "spotId": "ALB-Z1-001", "zoneId": "Z1-CAMPUS", "street": "C. Imperial",
-  "lat": 38.97765, "lon": -1.85745, "status": "occupied",
-  "batteryLevel": 92.2, "confidence": 0.94,
-  "sensorType": "magnetic", "timestamp": 1778929200072
+  "spotId": "ALB-Z1-001",
+  "zoneId": "Z1-CAMPUS",
+  "street": "Paseo de los Estudiantes",
+  "lat": 38.980102,
+  "lon": -1.856053,
+  "status": "occupied",
+  "batteryLevel": 92.2,
+  "confidence": 0.94,
+  "sensorType": "magnetic",
+  "timestamp": 1778929200072
 }
 \end{lstlisting}
 
-Política de envío: cambio de estado inmediato tras debounce, heartbeat cada 5 min, auto-test diario, alarma de manipulación y aviso de batería baja ($<$ 20\,\%).
-
-\subsection{Calibración, instalación y mantenimiento}
-Calibración inicial en taller (linealización del magnetómetro) y final \emph{in situ} (medida del campo terrestre sin vehículo), 5-10 min/ud. Instalación nocturna por cuadrillas de 2 operarios con maquinaria menor, rendimiento típico 30-40 plazas/noche. Mantenimiento: revisión por muestreo cada 6 meses; sustitución de pila prevista a los 5 años; firmware actualizable OTA vía LPWAN cuando la pila lo permite o por visita técnica programada.
+El campo más importante es \texttt{status}, con valores \texttt{free}, \texttt{occupied} o \texttt{unknown}. El valor \texttt{unknown} es útil para representar sensores sin datos recientes, fallos de comunicación o situaciones donde no conviene afirmar que una plaza está libre.
 
 \section{Conectividad}
 
-\subsection{Comparativa}
-\begin{longtable}{lp{1.7cm}p{2.0cm}p{1.5cm}p{2.3cm}p{1.4cm}p{2.4cm}}
+La conectividad recomendada para el despliegue real es \textbf{NB-IoT}. Encaja bien con sensores de bajo consumo que envían mensajes pequeños, no requiere desplegar una red propia y aprovecha la cobertura móvil existente. La latencia esperada de NB-IoT es suficiente para un servicio de aparcamiento urbano: no se necesita control en milisegundos, sino información actualizada en pocos segundos.
+
+LoRaWAN se contempla como alternativa si el Ayuntamiento ya dispone de red municipal o si quiere evitar cuotas SIM. WiFi y Ethernet se reservan para cámaras, gateways o puntos con alimentación fija. 5G queda como opción para backhaul o integraciones avanzadas, pero no es necesario para cada sensor de plaza. C-V2X se entiende como una interfaz futura hacia vehículos conectados, no como la red base de los sensores.
+
+\begin{longtable}{P{4.1cm}P{4.1cm}P{6.5cm}}
 \toprule
-\textbf{Tec.} & \textbf{Latencia} & \textbf{Cobertura} & \textbf{CAPEX} & \textbf{OPEX} & \textbf{Consumo} & \textbf{Idoneidad} \\ \midrule
+\textbf{Capa} & \textbf{Tecnología recomendada} & \textbf{Motivo} \\
+\midrule
 \endhead
-\textbf{NB-IoT} & 1,6-10 s & Op.\ nacional & 0 € & 0,3-1 €/SIM/mes & Muy bajo & Sensores principales \\
-LoRaWAN & 1-2 s & Red privada & 600-1500 €/gw & $\sim$0 & Muy bajo & Plan B \\
-Sigfox & --- & EU & --- & --- & Muy bajo & Descartada \\
-Wi-Fi/Eth. & $<$100 ms & Local & --- & --- & Alto & Gateways/cámaras \\
-5G NR & $<$10 ms URLLC & Parcial & --- & Medio & Alto & Backhaul, V2X \\
-C-V2X & --- & LTE/5G & --- & --- & --- & Salida a vehículos \\
+Sensor por plaza & NB-IoT & Bajo consumo, cobertura amplia, coste operativo moderado \\
+Alternativa municipal & LoRaWAN & Útil si ya existe red propia \\
+Gateway o cámara & Ethernet, fibra o 5G & Más ancho de banda y alimentación fija \\
+Consumo externo & API REST y posible C-V2X & Desacopla el sistema de los clientes \\
 \bottomrule
 \end{longtable}
 
-\subsection{Decisión}
-\begin{longtable}{p{3.6cm}p{4.2cm}p{8.0cm}}
-\toprule
-\textbf{Capa} & \textbf{Tecnología} & \textbf{Razón} \\ \midrule
-\endhead
-Sensor $\rightarrow$ cloud & \textbf{NB-IoT} & Cobertura municipal sin infraestructura propia; OPEX bajo; vida multianual \\
-Plan B & \textbf{LoRaWAN} & Donde el ayuntamiento ya tenga gateways; cero coste por mensaje \\
-Backhaul gw/cámara & Ethernet/fibra/5G & Volumen y alimentación eléctrica \\
-Vehículo autónomo & API REST + C-V2X & Estándar, desacoplado \\
-\bottomrule
-\end{longtable}
+En el prototipo, la conectividad física se simula desde un equipo local. Aun así, el envío hacia AWS se realiza con MQTT/TLS real, por lo que la parte cloud recibe mensajes de la misma forma que los recibiría desde una flota de dispositivos.
 
-Esta combinación reproduce la práctica habitual en proyectos municipales españoles ya operativos: Santander (SmartSantander con sensores AMR sobre red propia y troncal IP), Málaga (smart parking con LoRaWAN privado en zona azul) y Pontevedra (NB-IoT en aparcamientos disuasorios). En el ámbito europeo, Niza y Lyon mantienen despliegues mixtos NB-IoT + LoRaWAN con APIs abiertas similares a la propuesta.
+\subsection{Volumen esperado de mensajes}
 
-\subsection{Plan de despliegue}
-\textbf{Fase 0 (semanas 1-4):} mapa exacto de las $\approx$ 500 plazas con coordenadas y prioridades, coordinación con Movilidad y EMT para cortes nocturnos, acuerdo con operador NB-IoT (tarifa SIM M2M, APN privado) y acuerdo con el responsable de la red WAN municipal. \textbf{Fase 1 (semanas 5-10):} 3 gateways edge sobre farolas o mobiliario urbano alimentados por alumbrado público, 20 sensores piloto en Z1-CAMPUS, despliegue del backend AWS y 2-3 semanas de validación operativa. \textbf{Fase 2 (semanas 11-20):} instalación nocturna de los $\approx$ 500 sensores restantes ($\sim$35/noche), 6-8 cámaras ANPR en accesos, 4 nodos ambientales, onboarding masivo con IoT Provisioning Templates. \textbf{Fase 3 (mes 6-12):} KPIs de servicio (uptime, latencia E2E, tasa de falsos positivos), iteración del agregador, integración con paneles DMS municipales. \textbf{Fase 4 (año 2):} escalado por barrios e integración C-V2X (RSU/MEC).
+El volumen de datos de un aparcamiento inteligente es moderado si se envía por evento y no por muestreo continuo. Una plaza no necesita publicar cada segundo; basta con avisar cuando cambia de estado y enviar un heartbeat periódico para indicar que el sensor sigue vivo.
 
-\subsection{Estimación de tráfico (piloto)}
-500 plazas $\times$ 5 cambios/día = 2\,500 eventos; 500 $\times$ 288 heartbeats/día = 144\,000; total $\approx$ \textbf{150\,000 mensajes/día ($\sim$85 MB)}. Pico evento deportivo: hasta 1\,000 cambios/min durante 15 min. Asumible por NB-IoT y por la capa cloud (cap.\ 8).
+Para un piloto de 500 plazas, si cada plaza tuviera varios cambios diarios y además enviara heartbeats, el tráfico seguiría siendo asumible para tecnologías LPWAN y para AWS IoT Core. En el prototipo se acelera la simulación para poder observar cambios en pocos minutos durante la defensa. Esa aceleración no representa el ritmo real de una calle, sino una forma práctica de comprobar que el backend reacciona.
 
 \section{Arquitectura cloud en AWS}
 
+La arquitectura cloud se ha diseñado con servicios gestionados y serverless para reducir la operación. En lugar de mantener servidores propios, cada servicio asume una responsabilidad clara: IoT Core recibe eventos, Lambda procesa, DynamoDB almacena y API Gateway expone datos.
+
+\subsection{Vista general}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{imagenes/diagrama_arquitectura.png}
+\caption{Arquitectura cloud del prototipo y consumidores externos.}
+\end{figure}
+
 \subsection{Servicios usados}
-\begin{longtable}{lp{11.2cm}}
+\begin{longtable}{P{4.6cm}P{10.1cm}}
 \toprule
-\textbf{Servicio} & \textbf{Rol} \\ \midrule
+\textbf{Servicio} & \textbf{Uso en el proyecto} \\
+\midrule
 \endhead
-\textbf{AWS IoT Core} & Broker MQTT/TLS, registry, Things, certificados, IoT Rules \\
-\textbf{AWS IoT Rule} & Filtrado SQL del topic y enrutado a Lambda \\
-\textbf{AWS Lambda} & Ingesta, agregación y API (serverless) \\
-\textbf{Amazon DynamoDB} & Estado actual + serie temporal (on-demand) \\
-\textbf{Amazon API Gateway} & Fachada REST + throttling + cuotas \\
-\textbf{Amazon CloudWatch} & Logs y métricas \\
-\textbf{IAM (LabRole)} & Identidad de las Lambdas (restricción Academy) \\
+AWS IoT Core & Broker MQTT, registro de Things, certificados y reglas IoT \\
+AWS IoT Rule & Filtrado de topics \texttt{parking/+/spot/+/status} \\
+AWS Lambda & Funciones de ingesta, agregación y API \\
+Amazon DynamoDB & Estado actual y serie temporal de KPIs \\
+Amazon API Gateway & API REST para dashboard y terceros \\
+Amazon CloudWatch & Logs de ejecución \\
+IAM / LabRole & Permisos de ejecución en el entorno académico \\
 \bottomrule
 \end{longtable}
 
-\noindent Diseñados pero no desplegados (lab o coste/beneficio): IoT Greengrass, S3 raw, Cognito.
+El patrón completo es sencillo: un evento llega a IoT Core, una regla lo entrega a la Lambda de ingesta, la Lambda actualiza el estado de la plaza y activa el cálculo de KPIs de la zona. Después, la API consulta DynamoDB y devuelve la información en JSON o GeoJSON.
 
-\subsection{Diagrama de arquitectura}
-\begin{lstlisting}
-Sensor AMR --MQTT/TLS--> AWS IoT Core --> IoT Rule (SQL) --> Lambda ingest
-                                                              |
-                                                              +-> DynamoDB parking-state
-                                                              +- async --> Lambda aggregator
-                                                                              |
-                                                                              +-> DynamoDB zone-kpis
-                                                                                          |
-Dashboard / Vehiculo / App <--HTTPS-- API Gateway <-- Lambda api <----------+
-\end{lstlisting}
+\subsection{Flujo paso a paso}
 
-\subsection{Flujo extremo a extremo}
 \begin{enumerate}
-\item Sensor publica MQTT/TLS sobre \texttt{parking/\{zoneId\}/spot/\{spotId\}/status}.
-\item IoT Core autentica vía mTLS X.509 y entrega al broker.
-\item La IoT Rule (\texttt{SELECT * FROM 'parking/+/spot/+/status'}) dispara la Lambda ingest.
-\item La Lambda ingest hace UPSERT en \texttt{parking-state} y, si cambia el estado, invoca de forma asíncrona la Lambda agregador con el \texttt{zoneId}.
-\item La Lambda agregador hace \texttt{Scan} filtrado por zona, calcula libres/ocupadas/ratio y escribe una fila en \texttt{zone-kpis} con \texttt{windowEnd}.
-\item API Gateway expone \texttt{/spots}, \texttt{/spots/\{id\}}, \texttt{/zones}, \texttt{/zones/\{id\}/kpis} y los integra con la Lambda api (JSON o GeoJSON).
-\item Cliente (dashboard o tercero) consume por HTTPS; CloudWatch recoge logs.
+\item El sensor o simulador genera una lectura con \texttt{spotId}, \texttt{zoneId}, posición, estado y marca temporal.
+\item El cliente MQTT se conecta a AWS IoT Core usando TLS y el certificado generado por los scripts.
+\item El mensaje se publica en el topic \texttt{parking/\{zone\}/spot/\{spot\}/status}.
+\item La regla IoT filtra todos los mensajes de ese patrón y llama a la Lambda de ingesta.
+\item La Lambda de ingesta normaliza el evento y actualiza la tabla de estado.
+\item Si procede recalcular la zona, se invoca la Lambda agregadora.
+\item La Lambda agregadora cuenta plazas libres, ocupadas y desconocidas en esa zona.
+\item La API lee las tablas y entrega la respuesta al dashboard o a un cliente externo.
 \end{enumerate}
 
-\subsection{Modelado de Things y policy}
-Todos los sensores pertenecen al \texttt{Thing Type} \texttt{smart-parking-albacete-sensor-type} y al \texttt{Thing Group} \texttt{smart-parking-albacete-fleet} (facilita acciones masivas). En el piloto comparten un único certificado y la policy \texttt{smart-parking-albacete-sensor-policy}, que autoriza solo \texttt{Connect/Publish/Subscribe/Receive} sobre topics \texttt{parking/*}. En producción se generaría un certificado por dispositivo (Fleet Provisioning Templates) para revocaciones granulares.
+Este flujo permite explicar la arquitectura sin entrar en detalles internos de AWS. Cada pieza tiene una función concreta y el dato avanza siempre en la misma dirección: del sensor al estado, del estado a los agregados y de los agregados a los consumidores.
 
-\subsection{Reparto edge / cloud}
-\textbf{Edge (diseño con IoT Greengrass v2):} filtrado de ruido del magnetómetro, debounce y detección de cambios reales, caché de hasta 24 h ante caída de conectividad, agregación simple por zona, procesamiento ANPR local con envío de solo metadatos (hash, dirección, recuento). \textbf{Cloud (implementado):} normalización del payload, persistencia de estado y agregados, APIs internas y externas, seguridad, observabilidad.
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{imagenes/diagrama_flujo_datos.png}
+\caption{Flujo extremo a extremo desde el sensor hasta la API y el dashboard.}
+\end{figure}
 
-\subsection{Nota sobre interoperabilidad (FIWARE, opcional)}
-El enunciado exige AWS y contempla la posibilidad de proponer una integración híbrida con \textbf{FIWARE} si se justifica. Esta línea es relevante en el contexto europeo porque numerosos pliegos municipales (Open \& Agile Smart Cities, proyectos H2020/Horizon Europe) demandan compatibilidad con el modelo NGSI-v2 / NGSI-LD y con los Smart Data Models públicos del catálogo \texttt{smart-data-models.github.io} (\texttt{ParkingSpot}, \texttt{ParkingZone}, \texttt{ParkingSensor}). Para fases posteriores se prevé exponer un endpoint adicional alimentado por la misma Lambda de ingesta (con un \texttt{POST} al Context Broker Orion tras escribir en DynamoDB), de modo que un tercero pueda consumir por NGSI-v2 sin tocar el resto de la arquitectura. En el piloto \textbf{no se despliega} Orion porque añade contenedores y puntos de fallo que no aportan valor académico extra dado el límite de 3 h del lab, y porque el contrato REST + GeoJSON ya cubre los requisitos funcionales exigidos.
+\subsection{Reparto entre edge y cloud}
 
-\subsection{Implementación efectiva del prototipo}
-\begin{longtable}{lp{9.0cm}p{2.2cm}}
+En una instalación real, parte del trabajo debería hacerse cerca del sensor o en un gateway de zona. El edge es el lugar adecuado para filtrar ruido, aplicar debounce, almacenar eventos si se pierde conectividad y evitar enviar información innecesaria. Si hubiera cámaras, también sería el lugar correcto para procesar imagen localmente y enviar solo metadatos.
+
+En el prototipo se implementa la parte cloud: normalización de eventos, persistencia de estado, agregados, API y visualización. El edge queda descrito como diseño de producción porque no hay sensores físicos ni gateways reales en el alcance entregado.
+
+\subsection{Qué está implementado y qué queda diseñado}
+
+\begin{longtable}{P{7cm}P{7.7cm}}
 \toprule
-\textbf{Recurso} & \textbf{Nombre} & \textbf{Estado} \\ \midrule
+\textbf{Parte} & \textbf{Situación en este proyecto} \\
+\midrule
 \endhead
-Thing Type / Group & \texttt{*-sensor-type} / \texttt{*-fleet} & Creados \\
-Things & \texttt{ALB-Z1-001} \ldots{} \texttt{ALB-Z4-010} (40 ud.) & Creados \\
-Certificado + Policy & Compartidos en piloto & Creados \\
-IoT Topic Rule & \texttt{smart\_parking\_albacete\_ingest\_rule} & Activa \\
-DynamoDB & \texttt{*-state}, \texttt{*-zone-kpis} & ACTIVE \\
-Lambdas & \texttt{*-ingest}, \texttt{*-aggregator}, \texttt{*-api} & Desplegadas \\
-API Gateway & \texttt{smart-parking-albacete-api} (\texttt{id 85fbp0svzc}) & Stage \texttt{prod} \\
+Simulación de sensores & Implementada en Python \\
+Publicación MQTT/TLS & Implementada contra AWS IoT Core \\
+Procesado serverless & Implementado con Lambdas \\
+Estado actual & Implementado con DynamoDB \\
+API y dashboard & Implementados \\
+Sensor magnético físico & Diseñado, no instalado \\
+Gateway edge real & Diseñado, no desplegado \\
+Integración C-V2X & Descrita como posibilidad futura \\
+FIWARE Orion & Propuesto como interoperabilidad futura \\
 \bottomrule
 \end{longtable}
 
-\section{Modelo de datos y APIs}
+Esta separación es importante porque evita presentar como producción algo que realmente es un prototipo académico. El valor del trabajo está en que las piezas software sí están conectadas y son ejecutables, mientras que la sensorización física queda especificada para una fase posterior.
 
-\subsection{Modelado físico en DynamoDB}
-\textbf{Tabla \texttt{*-state}} (estado actual, PK \texttt{spotId}): \texttt{zoneId, street, lat, lon, status} (free/occupied/unknown), \texttt{batteryLevel, confidence, sensorType, lastUpdated}. Modo PAY\_PER\_REQUEST. Operaciones principales: \texttt{PutItem} (UPSERT) desde la Lambda ingest y \texttt{Scan} filtrado por \texttt{zoneId} desde la Lambda agregador y la Lambda api. En escenario ciudad: GSI \texttt{zoneId-status-index} para sustituir el \texttt{Scan} por \texttt{Query}.
+\subsection{FIWARE e interoperabilidad}
 
-\textbf{Tabla \texttt{*-zone-kpis}} (serie temporal, PK \texttt{zoneId}, SK \texttt{windowEnd} ISO 8601): \texttt{totalSpots, freeSpots, occupiedSpots, unknownSpots, occupancyRate, computedAtMs}. Permite consultas naturales del tipo \emph{últimos N KPIs de Z1}.
+La guía del proyecto menciona FIWARE como tecnología relevante en smart cities, aunque exige AWS como plataforma cloud. Por eso se propone FIWARE como una capa opcional de interoperabilidad, no como sustituto de AWS. En una fase posterior, la misma información de plazas y zonas podría publicarse en un Context Broker Orion usando modelos NGSI-v2 o NGSI-LD.
 
-\subsection{Contrato OpenAPI 3.0}
-\begin{longtable}{p{1.2cm}p{4.0cm}p{5.4cm}p{4.0cm}}
+Esta integración tendría sentido si el Ayuntamiento ya usa FIWARE o si quiere compartir datos con otras plataformas urbanas europeas. Para el piloto no se despliega porque añade complejidad y no mejora la demostración principal: el flujo IoT completo ya queda validado con AWS, API REST y GeoJSON.
+
+\section{Modelo de datos y API}
+
+El modelo de datos está pensado para responder rápido a dos preguntas: cuál es el estado actual de cada plaza y cuál es la ocupación agregada por zona. Para eso se usan dos tablas principales.
+
+\subsection{Tabla de estado actual}
+
+La tabla \texttt{smart-parking-albacete-state} guarda una fila por plaza. Su clave principal es \texttt{spotId}. Cada nuevo evento sobrescribe el estado anterior de esa plaza, de forma que consultar esta tabla equivale a consultar la fotografía actual del aparcamiento.
+
+\begin{longtable}{P{4.1cm}P{10.6cm}}
 \toprule
-\textbf{Mét.} & \textbf{Ruta} & \textbf{Descripción} & \textbf{Parámetros} \\ \midrule
+\textbf{Campo} & \textbf{Descripción} \\
+\midrule
 \endhead
-GET & \texttt{/spots} & Lista plazas con estado actual & \texttt{?zone=}, \texttt{?format=geojson} \\
-GET & \texttt{/spots/\{spotId\}} & Detalle de una plaza & --- \\
-GET & \texttt{/zones} & Sub-zonas con KPIs vivos & --- \\
-GET & \texttt{/zones/\{zoneId\}/kpis} & Serie temporal de KPIs & \texttt{?limit=} (def.\ 100) \\
+\texttt{spotId} & Identificador único de plaza \\
+\texttt{zoneId} & Zona operativa \\
+\texttt{street}, \texttt{lat}, \texttt{lon} & Ubicación \\
+\texttt{status} & Estado actual \\
+\texttt{batteryLevel} & Batería reportada por el sensor o simulador \\
+\texttt{confidence} & Confianza de la lectura \\
+\texttt{lastUpdated} & Último instante conocido \\
 \bottomrule
 \end{longtable}
 
-Todos los endpoints devuelven \texttt{application/json; charset=utf-8}. CORS habilitado para el dashboard local. Ejemplo de respuesta de \texttt{GET /zones}:
+\subsection{Tabla de KPIs por zona}
+
+La tabla \texttt{smart-parking-albacete-zone-kpis} guarda agregados temporales. Su clave combina \texttt{zoneId} y \texttt{windowEnd}, lo que permite recuperar los últimos valores de ocupación de una zona.
+
+\begin{longtable}{P{4.1cm}P{10.6cm}}
+\toprule
+\textbf{Campo} & \textbf{Descripción} \\
+\midrule
+\endhead
+\texttt{zoneId} & Zona operativa \\
+\texttt{windowEnd} & Instante del cálculo \\
+\texttt{totalSpots} & Plazas conocidas en la zona \\
+\texttt{freeSpots} & Plazas libres \\
+\texttt{occupiedSpots} & Plazas ocupadas \\
+\texttt{unknownSpots} & Plazas sin estado fiable \\
+\texttt{occupancyRate} & Porcentaje de ocupación \\
+\bottomrule
+\end{longtable}
+
+\subsection{API REST}
+
+La API está documentada en \texttt{prototipo/api/openapi.yaml} y ofrece cuatro endpoints principales:
+
+\begin{longtable}{P{2.2cm}P{4.8cm}P{7.7cm}}
+\toprule
+\textbf{Método} & \textbf{Ruta} & \textbf{Uso} \\
+\midrule
+\endhead
+GET & \texttt{/spots} & Lista plazas con su estado actual \\
+GET & \texttt{/spots/\{spotId\}} & Devuelve el detalle de una plaza \\
+GET & \texttt{/zones} & Devuelve KPIs actuales por zona \\
+GET & \texttt{/zones/\{zoneId\}/kpis} & Devuelve la serie temporal de una zona \\
+\bottomrule
+\end{longtable}
+
+El endpoint \texttt{/spots} acepta filtros por zona y formato GeoJSON:
 
 \begin{lstlisting}
-{"count": 4, "items": [
-  {"zoneId":"Z1-CAMPUS","total":10,"free":6,"occupied":4,"occupancyRate":0.4},
-  {"zoneId":"Z2-DEPORTIVO","total":10,"free":4,"occupied":6,"occupancyRate":0.6},
-  {"zoneId":"Z3-SANITARIO","total":10,"free":6,"occupied":4,"occupancyRate":0.4},
-  {"zoneId":"Z4-RESIDENCIAL","total":9,"free":7,"occupied":2,"occupancyRate":0.222}
-]}
+curl "$base/spots?zone=Z2-DEPORTIVO"
+curl "$base/spots?format=geojson"
 \end{lstlisting}
 
-GeoJSON RFC 7946 disponible vía \texttt{?format=geojson} para consumo directo desde mapas y OEM (FeatureCollection con \texttt{Point} geometry y \texttt{properties} por plaza).
+GeoJSON es importante porque permite pintar la respuesta directamente sobre visores cartográficos sin transformar los datos manualmente.
 
-\subsection{APIs internas vs externas e idempotencia}
-La API pública es de solo lectura, con rate-limit y opcional API key/Cognito. La API interna (operador) permite forzar \texttt{unknown} para plazas en obras y queda protegida con IAM y red privada (documentada, no desplegada). La Lambda ingest hace \texttt{PutItem} idempotente; en escenarios con orden estricto se introduce \texttt{ConditionExpression: lastUpdated < :ts}. El versionado se hará en el path (\texttt{/v1/}, \texttt{/v2/}) al pasar a productivo.
+\subsection{Ejemplo de uso de la API}
 
-\subsection{Catálogo de KPIs}
-\begin{longtable}{p{6.5cm}p{3.0cm}p{5.0cm}}
-\toprule
-\textbf{KPI} & \textbf{Periodicidad} & \textbf{Origen} \\ \midrule
-\endhead
-\% ocupación por sub-zona & Tiempo real & Lambda agregador \\
-\% ocupación por calle & A demanda & \texttt{Scan} sobre \texttt{*-state} \\
-Plazas libres absolutas por sub-zona & Tiempo real & Lambda agregador \\
-Tiempo medio de ocupación por plaza & Diario & Trabajo futuro \\
-Rotación por plaza & Diario & Trabajo futuro \\
-Sensores caídos / batería baja & Cada hora & Trabajo futuro (auditoría) \\
-Saturación pico (máx.\ \%) & Diario & Trabajo futuro \\
-\bottomrule
-\end{longtable}
+Una aplicación externa no necesita conocer DynamoDB ni IoT Core. Solo consume HTTPS:
+
+\begin{lstlisting}
+$base = "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod"
+curl "$base/spots"
+curl "$base/spots?zone=Z1-CAMPUS"
+curl "$base/zones"
+curl "$base/zones/Z1-CAMPUS/kpis?limit=10"
+\end{lstlisting}
+
+La respuesta de \texttt{/zones} resume el estado operativo de cada zona. Esa respuesta es suficiente para un panel municipal que quiera mostrar "Campus: 60 \% ocupado" o para una aplicación que prefiera recomendar una zona con más disponibilidad antes que una plaza concreta.
 
 \section{Seguridad y privacidad}
 
-\subsection{Modelo de amenazas (resumen)}
-\begin{longtable}{p{3.5cm}p{4.5cm}p{6.5cm}}
+La seguridad se aborda en tres niveles: dispositivo, transporte y exposición de la información. En el piloto, todos los sensores simulados usan el material criptográfico generado por los scripts de IoT Core. En producción, lo recomendable sería un certificado X.509 por dispositivo, de forma que se pueda revocar un sensor concreto sin afectar al resto.
+
+El transporte entre dispositivo e IoT Core usa MQTT sobre TLS. La API se expone por HTTPS. Las funciones Lambda se ejecutan con el rol disponible en AWS Academy, aunque en producción deberían separarse los permisos por función: ingesta con escritura sobre la tabla de estado, agregador con lectura/escritura sobre las tablas necesarias y API con permisos de solo lectura.
+
+Desde el punto de vista de privacidad, la decisión más importante es no depender de imágenes ni matrículas para saber si una plaza está ocupada. El dato principal es el estado de una plaza, no la identidad del vehículo ni del conductor. Si en una fase posterior se usan cámaras en accesos, deberían procesarse localmente y enviar solo información agregada o anonimizada.
+
+En producción también habría que revisar la exposición pública de la API. Para una demo académica puede bastar con una URL temporal, pero un servicio municipal necesitaría autenticación, cuotas por consumidor, monitorización de abuso y separación entre API pública y API interna. La API pública debería ser de solo lectura; las acciones administrativas, como marcar una calle en obras o desactivar una plaza, tendrían que quedar en una interfaz protegida.
+
+\begin{longtable}{P{5cm}P{9.7cm}}
 \toprule
-\textbf{Activo} & \textbf{Amenaza} & \textbf{Mitigación} \\ \midrule
+\textbf{Riesgo} & \textbf{Mitigación propuesta} \\
+\midrule
 \endhead
-Sensor físico & Manipulación, robo & Caja blindada, alarma de movimiento \\
-Identidad sensor & Suplantación & Certif.\ por dispositivo + rotación + revocación \\
-Canal sensor$\leftrightarrow$cloud & MITM, eavesdropping & mTLS TLS 1.2 \\
-Cloud (datos) & Acceso no autorizado & IAM mínimo privilegio + auditoría \\
-API pública & Abuso, DoS & Throttling, cuotas, API keys, WAF \\
-Datos personales & Inferencia & Sin matrículas ni datos del conductor \\
-Firmware OTA & Backdoor & Firma criptográfica y validación en dispositivo \\
+Suplantación de sensor & Certificados X.509 y políticas IoT restrictivas \\
+Manipulación física & Alarmas de tamper y revisión de mantenimiento \\
+Datos falsos & Umbral de confianza, debounce y validaciones en ingesta \\
+Abuso de API & Throttling, API keys, WAF y autenticación en producción \\
+Pérdida de conectividad & Buffer local y reintentos \\
+Exposición de datos personales & No almacenar matrículas ni imágenes en la nube \\
 \bottomrule
 \end{longtable}
-
-\subsection{Implementación}
-\textbf{Dispositivo:} un \texttt{Thing} por plaza con certificado X.509 compartido en el piloto y policy restrictiva (\texttt{Connect/Publish/Subscribe/Receive} sobre \texttt{parking/*}). En producción: un certificado por dispositivo (Fleet Provisioning), renovación 12-24 m y AWS IoT Device Defender.
-
-\textbf{Transporte:} TLS 1.2 obligatorio (puerto 8883), mTLS con CA AWS IoT, validación de \texttt{AmazonRootCA1.pem} en el dispositivo. API REST siempre por HTTPS.
-
-\textbf{Procesamiento:} las tres Lambdas corren bajo \texttt{LabRole} (limitación del lab); en producción se sustituiría por un rol IAM por Lambda con políticas a medida (\texttt{ingest} solo \texttt{PutItem} sobre \texttt{*-state}, \texttt{aggregator} \texttt{Scan/PutItem}, \texttt{api} solo lectura). Sin credenciales en claro.
-
-\textbf{Persistencia:} DynamoDB cifrado en reposo con KMS gestionado por AWS; en producción CMK propia. Point-in-Time Recovery con 35 días de retención.
-
-\textbf{Exposición:} HTTPS + CORS controlado. Diseñado para producción: API Keys + Usage Plans (10\,000 req/día por app), Cognito o JWT custom, AWS WAF y custom domain con ACM.
-
-\textbf{Operación:} CloudWatch Logs + CloudTrail (audita toda la API AWS) + AWS Config (alerta de cambios en IAM o certificados).
-
-\subsection{Cumplimiento RGPD (privacy by design)}
-No se almacenan datos personales. Las cámaras ANPR procesan la matrícula \textbf{localmente en el gateway} y solo envían a la cloud un hash unidireccional y la dirección de paso; las imágenes originales se retienen un máximo de 72 h localmente. Las consultas a la API son anónimas. Retención: KPIs agregados 24 meses; logs operacionales a S3 Glacier tras 90 días.
-
-\subsection{Plan de respuesta a incidentes}
-\begin{enumerate}
-\item \textbf{Detección:} alertas de CloudWatch o IoT Device Defender (intentos de conexión rechazados, picos de tráfico anómalos).
-\item \textbf{Contención:} revocación inmediata del certificado afectado (\texttt{iot:UpdateCertificate} a \texttt{REVOKED}).
-\item \textbf{Erradicación:} rotación de certificados afectados y sustitución física del sensor si hay sospecha de manipulación.
-\item \textbf{Recuperación:} restauración del estado desde DynamoDB PITR si fue manipulado.
-\item \textbf{Post-mortem:} revisión de logs CloudTrail y CloudWatch, informe a la concejalía y mejora de la policy o la lógica afectada.
-\end{enumerate}
-
-\section{Escalabilidad: del piloto a la ciudad}
-
-\subsection{Piloto ($\approx$ 500 plazas)}
-Volumen: $\approx$ 150\,000 mensajes/día (1,7 msg/s medio, pico 10 msg/s, $\sim$85 MB/día). Capacidad disponible: IoT Core soporta 30\,000 pub/s ($\times$10\,000 margen), DynamoDB on-demand absorbe 40\,000 WCU, Lambda 1\,000 concurrentes por defecto. Limitación observada: el \texttt{Scan} filtrado escala linealmente hasta $\sim$10\,000 plazas; a partir de ahí migrar a \texttt{Query} con GSI.
-
-\subsection{Ciudad ($\approx$ 10\,000 plazas)}
-Volumen: 50\,000 cambios + 2\,880\,000 heartbeats = \textbf{$\approx$ 3 M mensajes/día} (35 msg/s medio, pico 200 msg/s; 1,7 GB/día). Cambios arquitectónicos:
-
-\begin{longtable}{p{3.0cm}p{11.5cm}}
-\toprule
-\textbf{Componente} & \textbf{Cambio} \\ \midrule
-\endhead
-Sensores & Onboarding con Fleet Provisioning Templates; certificado por dispositivo \\
-Buffer & Interponer \textbf{Amazon Kinesis Data Streams} entre IoT Core y procesador \\
-Procesamiento & Mantener Lambda o sustituir por un job de streaming si el volumen lo justifica \\
-Estado & GSI \texttt{zoneId-status-index} en DynamoDB \\
-Histórico & Política de TTL en \texttt{zone-kpis} o archivado periódico a S3 \\
-Datalake & S3 raw + Athena (analítica ad-hoc) \\
-APIs & API Gateway con cuotas + CloudFront caché + WAF \\
-HA & Multi-AZ por defecto; opcional DynamoDB Global Tables para DR multi-región \\
-\bottomrule
-\end{longtable}
-
-\subsection{Particionado, alta disponibilidad y CI/CD}
-Particionado por \texttt{zoneId} (gestión municipal), distrito (reportes) y mes (S3 para Athena). Todos los servicios gestionados son multi-AZ por defecto; para DR multi-región se planificaría una segunda región pasiva con \textbf{DynamoDB Global Tables} y replicación de Lambda + API GW desplegable por CI/CD. Los sensores mantienen caché local de hasta 24 h y reenvío al recuperar conectividad. CI/CD recomendado: AWS CDK o Terraform, pipeline GitHub Actions / CodePipeline con despliegue blue/green y rollback automático, pruebas de carga trimestrales con Locust contra 5\,000+ sensores simulados. Coste cloud agregado ciudad: \textbf{$\approx$ 440 USD/mes}, equivalente a \textbf{4-6 céntimos por plaza/mes} (cap.\ 9).
-
-\subsection{Plan de pruebas a escala}
-\begin{longtable}{p{4.5cm}p{5.5cm}p{5.0cm}}
-\toprule
-\textbf{Prueba} & \textbf{Objetivo} & \textbf{Métrica} \\ \midrule
-\endhead
-Carga sostenida & 35 msg/s constantes 24 h & p99 API $<$ 2 s \\
-Pico evento deportivo & 1\,000 eventos/min, 15 min & Sin throttling DDB/Lambda \\
-Caída de IoT Core simulada & Buffering y reenvío correctos & 0 pérdidas en cola $<$ 24 h \\
-Caída del agregador & Continuidad de la ingesta & KPIs eventualmente consistentes \\
-Fuga de credencial sensor & Revocación rápida del certificado & $<$ 5 min detección $\rightarrow$ revoc.\ \\
-\bottomrule
-\end{longtable}
-
-\section{Análisis de costes}
-
-\subsection{Hipótesis}
-Valores tomados como referencia de mercado para 2025-2026: EUR/USD = 1,08; vida útil sensor 6 años; cuadrilla 60 €/h con rendimiento 0,3 h/sensor (cifras habituales en pliegos municipales españoles); SIM NB-IoT M2M 0,60 €/SIM/mes a gran volumen (tarifas Movistar/Vodafone/Orange en contratos $>$ 10\,000 SIMs); gateway edge 700 € + 100 € instalación (precios MikroTik/Cisco IR1101); cámara ANPR con compute edge 900 € (Hikvision iDS/Axis Q-series). Tarifas AWS de \texttt{aws.amazon.com/pricing} (\texttt{us-east-1}, mayo 2026); en \texttt{eu-west-1} $\approx$ +10\,\%.
-
-\subsection{Piloto (500 plazas)}
-\begin{longtable}{p{6.6cm}rrr}
-\toprule
-\textbf{Concepto} & \textbf{Unid.} & \textbf{Ud (€)} & \textbf{Total (€)} \\ \midrule
-\endhead
-Sensores AMR & 500 & 75 & 37\,500 \\
-Instalación sensores & 500 & 40 & 20\,000 \\
-Gateways edge (3 + redundancia) & 4 & 800 & 3\,200 \\
-Cámaras ANPR & 8 & 900 & 7\,200 \\
-Mástiles / soportes & 8 & 250 & 2\,000 \\
-Nodos ambientales & 4 & 350 & 1\,400 \\
-Sistema central respaldo & 1 & 1\,500 & 1\,500 \\
-Subtotal hardware & & & 72\,800 \\
-Ingeniería + gestión (20\,\%) & & & 14\,560 \\
-\textbf{CAPEX piloto} & & & \textbf{87\,360 €} \\
-\bottomrule
-\end{longtable}
-
-OPEX mensual piloto: SIM NB-IoT (500 $\times$ 0,60 €) = 300 €; AWS IoT Core (4,5 M msg) $\approx$ 4,2 €; Lambda $\approx$ 0,7 €; DynamoDB $\approx$ 7,5 €; API Gateway (1 M req) $\approx$ 3,3 €; S3/CloudWatch $\approx$ 2,4 €; mantenimiento (10 h $\times$ 35 €/h) = 350 €. \textbf{Total $\approx$ 670 €/mes} (cloud puro $\approx$ 18 €/mes, muy por debajo de RNF-13).
-
-\subsection{Ciudad (10\,000 plazas)}
-CAPEX ciudad: sensores 750\,000 €, instalación 350\,000 €, 80 gateways 64\,000 €, 50 cámaras 45\,000 €, 70 nodos ambientales 24\,500 €, centro operaciones 8\,000 € $\rightarrow$ subtotal 1\,241\,500 € + 15\,\% ingeniería = \textbf{$\approx$ 1\,427\,725 €}.
-
-OPEX mensual ciudad: SIM 5\,500 €, mantenimiento físico 6\,000 €, AWS IoT Core 83 €, Kinesis 70 €, Lambda/DynamoDB/API/S3/CloudWatch $\approx$ 250 €, WAF + CloudFront $\approx$ 30 €, 1 FTE operaciones 3\,500 € $\rightarrow$ \textbf{$\approx$ 15\,440 €/mes} (cloud puro $\approx$ 440 €/mes $\approx$ 4-6 cént./plaza/mes).
-
-\subsection{TCO a 5 años}
-\begin{longtable}{lrrrr}
-\toprule
-\textbf{Escenario} & \textbf{CAPEX (€)} & \textbf{OPEX 5 a.\ (€)} & \textbf{TCO (€)} & \textbf{€/plaza/año} \\ \midrule
-\endhead
-Piloto (500) & 87\,360 & 40\,200 & 127\,560 & \textbf{51} \\
-Ciudad (10\,000) & 1\,427\,725 & 926\,400 & 2\,354\,125 & \textbf{47} \\
-\bottomrule
-\end{longtable}
-
-Una plaza regulada española factura $>$ 1 €/día ($\approx$ 365 €/año en zona azul/verde según tarifas habituales de la OTA en ciudades medianas): con un incremento de rotación del 5\,\% o una mejora del 2\,\% en sanciones evitadas, la solución se autofinancia. Para contraste, el coste declarado del proyecto SmartSantander (2010-2015, $\sim$12\,000 nodos heterogéneos) se situó en torno a 70-100 €/plaza/año amortizado, en línea con el rango aquí estimado.
-
-\subsection{Conclusiones del análisis de coste}
-\begin{enumerate}
-\item La fracción cloud del coste es marginal frente al hardware y la operación física.
-\item El coste cloud crece aproximadamente lineal con el número de plazas; el verdadero motor del TCO es la flota física.
-\item NB-IoT como red elegida es decisiva en el OPEX: cualquier alternativa con cuota mensual $>$ 2 €/SIM duplicaría el coste operativo.
-\item La arquitectura serverless evita inversión en infraestructura cloud propia (sin EC2/RDS) y permite un piloto encuadrable en el presupuesto típico de un proyecto de innovación de un ayuntamiento mediano.
-\end{enumerate}
 
 \section{Prototipo funcional}
 
-\subsection{Estructura y stack}
+El prototipo incluido en el repositorio demuestra el flujo completo sin sensores físicos. No es una maqueta aislada de frontend: incluye simulación de telemetría, publicación MQTT/TLS, infraestructura AWS, procesamiento serverless, persistencia, API y dashboard.
+
+\subsection{Estructura}
 \begin{lstlisting}
 prototipo/
-  infra/      (01_setup_iot_core, 02_dynamodb, 03_lambda, 04_apigw, 99_teardown)
-  simulator/  (parking_sensor.py, fleet_runner.py, certs/)
-  lambdas/    (ingest, aggregator, api)
-  api/openapi.yaml
-  dashboard/streamlit_app.py
+  infra/       scripts de despliegue y limpieza
+  simulator/   simulador de sensores MQTT
+  lambdas/     funciones ingest, aggregator y api
+  api/         especificación OpenAPI
+  dashboard/   aplicación Streamlit
 \end{lstlisting}
 
-Stack: Python 3.13 + boto3 + paho-mqtt + Streamlit + Plotly. Despliegue real en AWS Academy Learner Lab (\texttt{Account 583916379944}, \texttt{us-east-1}).
-
-\subsection{Lanzamiento paso a paso}
+\subsection{Puesta en marcha}
 \begin{lstlisting}
+cd prototipo
 python -m pip install -r requirements.txt
-Copy-Item .env.example .env
 
-python infra\01_setup_iot_core.py     # Things, certificado, policy
-python infra\02_setup_dynamodb.py     # tablas
-python infra\03_setup_lambda.py       # 3 Lambdas + IoT Rule
-python infra\04_setup_api_gateway.py  # API REST stage prod
+python infra\01_setup_iot_core.py
+python infra\02_setup_dynamodb.py
+python infra\03_setup_lambda.py
+python infra\04_setup_api_gateway.py
 
 python simulator\fleet_runner.py --num-spots 40 --duration 180 --heartbeat 20 --tick 2
 python -m streamlit run dashboard\streamlit_app.py
-
-python infra\99_teardown.py           # limpieza obligatoria
 \end{lstlisting}
 
-\subsection{Verificación end-to-end}
-\begin{longtable}{p{4.6cm}p{10.0cm}}
-\toprule
-\textbf{Paso} & \textbf{Resultado real} \\ \midrule
-\endhead
-Crear IoT Core & 40 Things, certificado, policy, attach OK \\
-Crear DynamoDB & 2 tablas ACTIVE \\
-Crear Lambdas + Rule & 3 Lambdas, IoT Rule activa \\
-Crear API GW & URL \texttt{https://85fbp0svzc.execute-api.us-east-1.amazonaws.com/prod} \\
-Simulador 60 s & 40 sensores conectados, eventos publicados \\
-\texttt{GET /spots} & 200 OK, 39 items (1 sensor en fallo intencional) \\
-\texttt{GET /zones} & 4 sub-zonas: Z1 40\,\%, Z2 60\,\%, Z3 40\,\%, Z4 22\,\% \\
-\texttt{GET /spots?format=geojson} & FeatureCollection con 10 features Z1 \\
-\texttt{GET /zones/Z1-CAMPUS/kpis?limit=5} & 5 entradas serie temporal \\
-\bottomrule
-\end{longtable}
-
-Latencia medida entre publicación en el simulador y refresco en el dashboard: \textbf{2-3 segundos}.
-
-\subsection{Visualización y consumo}
-El dashboard Streamlit muestra: cabecera con KPIs globales, mapa con cada plaza coloreada (verde libre, rojo ocupada, gris sin datos), tabla y gráfico de barras por sub-zona, serie temporal del \% de ocupación por zona y tabla filtrable de detalle. La inspección AWS se hace en Consola $\rightarrow$ IoT Core $\rightarrow$ MQTT test client (suscrito a \texttt{parking/\#}), DynamoDB $\rightarrow$ Explore y CloudWatch Logs.
-
-Ejemplo de consumo por un sistema externo (vehículo, app, panel):
+Al terminar la prueba se debe ejecutar:
 
 \begin{lstlisting}
-curl https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/spots
-curl '.../prod/spots?zone=Z2-DEPORTIVO'
-curl '.../prod/spots?format=geojson'
-curl .../prod/spots/ALB-Z1-001
-curl .../prod/zones/Z1-CAMPUS/kpis?limit=20
+python infra\99_teardown.py
 \end{lstlisting}
 
-Las capturas (consolas AWS + dashboard) se entregan en \texttt{memoria/diagramas/} siguiendo la nomenclatura \texttt{captura\_*.png}.
+Este último paso es importante porque el entorno AWS Academy tiene duración limitada y no conviene dejar recursos activos.
 
-\section{Limitaciones, trabajo futuro y defensa}
+\subsection{Dashboard}
 
-\subsection{Limitaciones}
-\textbf{Académicas:} credenciales AWS Academy 3 h, solo \texttt{LabRole}, servicios fuera del catálogo del lab no siempre disponibles. \textbf{Técnicas:} certificado X.509 compartido (en producción uno por dispositivo), \texttt{Scan} filtrado en DynamoDB (futuro GSI), agregador en Lambda síncrona, sin alertas automáticas de sensor caído, sin autenticación en la API pública, dashboard local sin multi-usuario, una sola región. \textbf{Funcionales:} sin estimación de \emph{dwell time}, sin predicción ML, sin gestión de plazas reservadas, sin panel ciudadano, sin paneles DMS.
+El dashboard Streamlit actúa como panel de operador. Su valor no está en sustituir una aplicación municipal completa, sino en demostrar que los datos llegan con una forma útil. Muestra un mapa con las plazas, una vista por zonas, métricas globales y una tabla de detalle. Esta combinación permite comprobar visualmente que los cambios enviados por el simulador terminan reflejándose en la consulta del usuario.
 
-\subsection{Roadmap 12 meses}
-\begin{longtable}{lp{11.0cm}}
+El mapa usa las coordenadas del fichero \texttt{parking\_zone\_seed.json}. Esto evita colocar puntos inventados en posiciones genéricas y hace que la demo tenga relación con la zona piloto definida en la guía. Para una entrega académica es suficiente; en un despliegue real habría que completar el inventario exacto de plazas y validarlo con cartografía municipal.
+
+\subsection{Qué demuestra el prototipo}
+\begin{longtable}{P{9cm}P{5.7cm}}
 \toprule
-\textbf{Mes} & \textbf{Hito} \\ \midrule
+\textbf{Elemento} & \textbf{Estado} \\
+\midrule
 \endhead
-1 & Piloto técnico con 20 sensores reales \\
-2-3 & Despliegue de los 500 sensores piloto \\
-4 & Pentest + endurecimiento (Cognito, WAF, Device Defender) \\
-5 & Endpoint NGSI-v2 opcional para interoperabilidad \\
-6 & Archivado del histórico y cuadros de mando ampliados \\
-7 & PWA ciudadana con guiado a plazas libres \\
-8 & Auditoría y alertas automáticas de sensores caídos \\
-9 & Integración con DMS municipales \\
-10-12 & Escalado a 10\,000 plazas \\
+40 plazas simuladas con coordenadas reales & Implementado \\
+MQTT/TLS hacia AWS IoT Core & Implementado \\
+Registro de Things, certificado y policy & Implementado por script \\
+Regla IoT hacia Lambda & Implementado \\
+Persistencia en DynamoDB & Implementado \\
+Agregación de KPIs por zona & Implementado \\
+API REST con OpenAPI & Implementado \\
+Dashboard Streamlit & Implementado \\
+Sensores físicos en calle & No implementado, diseñado \\
+FIWARE Orion & No implementado, propuesto como evolución \\
+C-V2X real & No implementado, integración futura \\
 \bottomrule
 \end{longtable}
 
-\subsection{Defensa: preguntas previsibles}
-\begin{itemize}
-\item \textbf{¿Por qué AMR magnético?} Privacidad, consumo (5-7 años), coste ($\sim$75 €), robustez IP68; cámaras solo en accesos como conteo agregado.
-\item \textbf{¿Y si falla un sensor o gateway?} Sensor: heartbeat ausente detectado por auditoría \texttt{lastUpdated} (futura alerta SNS). Gateway: redundancia por zona. Conectividad: buffer local y reenvío.
-\item \textbf{¿Cómo evitar falsos libres/ocupados?} Debounce 2-3 s en edge, umbral \texttt{confidence}, calibración in situ, filtrado en la Lambda.
-\item \textbf{¿Cómo se escala a 10\,000 plazas?} Kinesis como buffer, GSI en DynamoDB, WAF + CloudFront; coste cloud $\approx$ 440 €/mes.
-\item \textbf{¿Qué latencia se espera?} NB-IoT 1-3 s + IoT/Lambda/DDB 50-300 ms + API 100-500 ms; total $<$ 5 s (medido 2-3 s).
-\item \textbf{¿Estado vs histórico?} \texttt{parking-state} sobrescribe; \texttt{zone-kpis} indexa por \texttt{(zoneId, windowEnd)}; raw events a S3 (diseño).
-\item \textbf{¿Cómo proteges la API?} HTTPS, CORS, throttling y API keys, WAF y Cognito (producción), IAM mínimo privilegio.
-\item \textbf{¿Qué es real y qué simulado?} Real: AWS IoT Core, 3 Lambdas, 2 DynamoDB, API GW, dashboard. Simulado: sensores físicos (paho-mqtt sobre MQTT/TLS real), cámaras ANPR, gateway edge.
-\item \textbf{¿Por qué AWS y no FIWARE?} El enunciado exige AWS. FIWARE se contempla como posible capa de interoperabilidad opcional (cap.\ 5.7), no como sustituto.
-\end{itemize}
+\subsection{Verificación práctica}
 
-\subsection{Checklist de entrega}
-Memoria (\texttt{.md}, \texttt{.tex}, \texttt{.pdf}) en \texttt{memoria/}; prototipo ejecutable de cero con \texttt{README\_GUIA.md}; capturas en \texttt{memoria/diagramas/}; \texttt{99\_teardown.py} ejecutado; ZIP final sin credenciales (\texttt{.aws/}, \texttt{infra/infra\_state.json}, \texttt{simulator/certs/}); autor \texttt{alonso.marcos@alu.uclm.es}.
+La verificación del prototipo se puede hacer sin leer el código fuente. Basta con desplegar la infraestructura, lanzar el simulador y consultar la API. Los puntos que deben comprobarse son:
+
+\begin{longtable}{P{5.2cm}P{9.5cm}}
+\toprule
+\textbf{Comprobación} & \textbf{Resultado esperado} \\
+\midrule
+\endhead
+Things en IoT Core & 40 identificadores \texttt{ALB-Zx-NNN} \\
+Mensajes MQTT & Eventos en topics \texttt{parking/.../status} \\
+Tabla de estado & Una fila por plaza reportada \\
+Tabla de KPIs & Entradas por zona y marca temporal \\
+\texttt{/spots} & Lista de plazas con estado actual \\
+\texttt{/zones} & Agregados de libres, ocupadas y desconocidas \\
+Dashboard & Mapa y métricas actualizadas \\
+\bottomrule
+\end{longtable}
+
+Esta verificación es importante para la defensa porque demuestra el flujo completo con evidencias observables: consola, API y dashboard.
+
+\section{Escalabilidad}
+
+El piloto trabaja con 40 plazas simuladas y está pensado para representar un despliegue inicial de unas 500 plazas. En ese tamaño, la arquitectura serverless es suficiente: IoT Core absorbe la entrada, Lambda procesa por evento y DynamoDB guarda el estado sin requerir capacidad fija.
+
+Al crecer hacia una ciudad completa, por ejemplo 10 000 plazas, no cambia la idea principal, pero sí aparecen mejoras necesarias:
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{imagenes/diagrama_escalado.png}
+\caption{Evolución propuesta desde piloto hasta escenario ciudad.}
+\end{figure}
+
+\begin{longtable}{P{4.8cm}P{9.9cm}}
+\toprule
+\textbf{Componente} & \textbf{Mejora al escalar} \\
+\midrule
+\endhead
+Identidad de sensores & Certificado individual y aprovisionamiento masivo \\
+Ingesta & Posible buffer con Kinesis para absorber picos \\
+DynamoDB & Índices por zona y estado para evitar scans grandes \\
+Histórico & S3 o Timestream para eventos y series largas \\
+API & Caché, cuotas, WAF y autenticación fuerte \\
+Observabilidad & Métricas, alarmas y auditoría por zona \\
+Operación & Inventario de sensores, batería y mantenimiento programado \\
+\bottomrule
+\end{longtable}
+
+El escalado debe organizarse por zonas o distritos. Esto facilita mantenimiento, análisis de ocupación y despliegues progresivos. También permite activar alertas localizadas, por ejemplo si una zona deja de enviar heartbeats o si una calle presenta datos incoherentes.
+
+\subsection{Operación diaria}
+
+En operación real, el sistema no se considera terminado cuando se despliegan los sensores. Hay que supervisarlo. El operador debería revisar sensores sin heartbeat, baterías bajas, zonas con datos anómalos y errores de API. También conviene disponer de un inventario que relacione cada \texttt{spotId} con su ubicación física exacta, fecha de instalación y último mantenimiento.
+
+La operación por zonas simplifica mucho el trabajo. Si una calle entra en obras, se pueden marcar sus plazas como no disponibles. Si un gateway deja de comunicar, el impacto se identifica por zona. Si un evento deportivo produce un pico, se puede observar sin mezclarlo con el comportamiento normal del campus o del hospital.
+
+\section{Costes aproximados}
+
+El coste de una solución de smart parking no está dominado por la nube, sino por los sensores, la instalación y el mantenimiento físico. La parte cloud es relevante, pero normalmente representa una fracción pequeña del total.
+
+Para un piloto de 500 plazas, las partidas principales serían:
+
+\begin{longtable}{P{8cm}r}
+\toprule
+\textbf{Concepto} & \textbf{Estimación orientativa} \\
+\midrule
+\endhead
+Sensores AMR & 500 x 75 EUR = 37 500 EUR \\
+Instalación & 500 x 40 EUR = 20 000 EUR \\
+Gateways y soporte & 3 000--5 000 EUR \\
+Cámaras puntuales y nodos ambientales & 8 000--10 000 EUR \\
+Ingeniería y puesta en marcha & 15--20 \% del hardware \\
+\bottomrule
+\end{longtable}
+
+El OPEX mensual incluiría tarjetas NB-IoT, mantenimiento y servicios AWS. Para el volumen del piloto, la nube tendría un coste bajo frente a conectividad y mantenimiento. En una ciudad con miles de plazas, el coste cloud crecería de forma aproximadamente lineal, pero seguiría siendo menor que la operación física de la red de sensores.
+
+Estas cifras son orientativas y sirven para comparar órdenes de magnitud. Antes de una licitación real habría que actualizar precios de sensores, instalación, SIM M2M y servicios AWS.
+
+\section{Limitaciones y trabajo futuro}
+
+El prototipo valida la arquitectura software completa, pero no sustituye una prueba física en calle: no se han medido precisión real del sensor magnético, duración de batería, resistencia al clima ni mantenimiento sobre calzada.
+
+La principal limitación académica ha sido AWS Academy Learner Lab. La cuenta quedó desactivada tras no cerrarse correctamente una sesión (\texttt{2026-05-16T03:07:38-0700}, fin anómalo \texttt{-0001-11-30T00:00:00-0752}, 264 minutos acumulados). Otro laboratorio disponible, \texttt{AWS Academy Data Engineering [152677]}, no tenía permisos suficientes sobre IoT Core, Lambda, DynamoDB y API Gateway. Esto no invalida el código ni el diseño, pero puede impedir una demo en vivo si no se facilita otra cuenta con permisos equivalentes.
+
+Limitaciones técnicas: certificado X.509 compartido en piloto, API sin autenticación fuerte, \texttt{Scan} en DynamoDB aceptable solo a pequeña escala, sin alertas automáticas de sensores caídos, dashboard local y una sola región. Limitaciones funcionales: sin \emph{dwell time}, predicción de ocupación, plazas reservadas, panel ciudadano completo, DMS municipal ni C-V2X real.
+
+\begin{longtable}{P{4cm}P{10.7cm}}
+\toprule
+\textbf{Fase} & \textbf{Mejora} \\
+\midrule
+\endhead
+Piloto físico & Instalar 20--50 sensores reales y comparar lecturas \\
+Seguridad & Añadir Cognito/API keys, WAF y certificados individuales \\
+Operación & Alertas de sensor caído y batería baja \\
+Datos & Archivo histórico en S3 o Timestream \\
+Interoperabilidad & Publicar contexto FIWARE NGSI-v2/NGSI-LD \\
+Ciudad & Escalado por barrios y cuadros de mando municipales \\
+\bottomrule
+\end{longtable}
 
 \end{document}
