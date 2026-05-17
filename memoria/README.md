@@ -1,11 +1,3 @@
----
-title: "Memoria técnica - Smart Parking Albacete"
-subtitle: "Internet de las Cosas y sus Aplicaciones"
-author: "alonso.marcos@alu.uclm.es"
-date: "Mayo 2026"
-lang: es-ES
----
-
 # 0. Resumen ejecutivo
 
 Este proyecto plantea una solución IoT de **aparcamiento inteligente** para una zona piloto del entorno universitario de Albacete. El caso de uso parte de una licitación ficticia del Ayuntamiento de Albacete y de una respuesta técnica de TECO S.L. El objetivo no es solo contar cuántas plazas están libres, sino diseñar una arquitectura completa capaz de recoger datos desde sensores, procesarlos, mantener el estado actualizado de cada plaza y exponer esa información a aplicaciones externas, paneles urbanos o futuros sistemas de movilidad conectada.
