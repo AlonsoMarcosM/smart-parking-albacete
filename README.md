@@ -46,127 +46,29 @@ Trabajo final de la asignatura **Internet de las Cosas y sus Aplicaciones** del 
 
 ![Mapa de la zona piloto en Albacete con la BBOX de despliegue](memoria/imagenes/bbox.png)
 
-> *Capturas adicionales del dashboard y de la consola AWS disponibles en `memoria/imagenes/`. Para reproducirlas, sigue la sección [Puesta en marcha](#8-puesta-en-marcha).*
+**Dashboard del prototipo consumiendo la API publicada:**
 
-| Vista | Descripción |
-|---|---|
-| Dashboard Streamlit | KPIs de ocupación, mapa pydeck con las 40 plazas, serie temporal por sub-zona |
-| AWS IoT Core | 40 *Things* `ALB-Zx-NNN`, certificado X.509 compartido y *Topic Rule* SQL `parking/+/spot/+/status` |
-| DynamoDB | Tabla de estado (`spotId`) + tabla de KPIs como serie temporal (`zoneId` + `windowEnd`) |
-| API Gateway | 4 endpoints REST documentados con OpenAPI 3.0, soporte GeoJSON RFC 7946 |
+![Dashboard Streamlit con KPIs, mapa y detalle de plazas](memoria/imagenes/captura_dashboard_streamlit.png)
+
+**Evidencias del despliegue AWS usado en la prueba:**
+
+![Things creados en AWS IoT Core](memoria/imagenes/captura_aws_iot_things.png)
+
+![Regla de AWS IoT Core hacia Lambda](memoria/imagenes/captura_aws_iot_topic_rule.png)
 
 ---
 
 ## 3. Arquitectura
 
-```mermaid
-flowchart TB
-    classDef sensor fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
-    classDef aws fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
-    classDef compute fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
-    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
-    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
-
-    subgraph Edge["Capa de telemetría / borde"]
-        direction LR
-        SIM["Simulador Python<br/>40 plazas"]:::sensor
-        REAL["Sensor AMR magnético<br/>(diseño producción)"]:::sensor
-    end
-
-    subgraph AWS["AWS Academy Learner Lab / AWS Cloud"]
-        direction TB
-        IOT["AWS IoT Core<br/>MQTT + mTLS + Things"]:::aws
-        RULE["IoT Topic Rule<br/><code>parking/+/spot/+/status</code>"]:::aws
-        ING["Lambda ingest<br/>normaliza eventos"]:::compute
-        STATE[("DynamoDB<br/>parking-state")]:::data
-        AGG["Lambda aggregator<br/>KPIs por zona"]:::compute
-        KPIS[("DynamoDB<br/>zone-kpis")]:::data
-        APIGW["API Gateway REST<br/>OpenAPI + GeoJSON"]:::api
-        LAPI["Lambda api<br/>lectura para clientes"]:::compute
-    end
-
-    subgraph Consumers["Consumo de datos"]
-        direction LR
-        DASH["Dashboard Streamlit<br/>mapa + KPIs"]:::sensor
-        EXT["Apps / paneles / movilidad<br/>cliente externo HTTPS"]:::sensor
-    end
-
-    SIM -->|"MQTT/TLS + X.509"| IOT
-    REAL -. "NB-IoT en despliegue real" .-> IOT
-    IOT --> RULE --> ING
-    ING -->|"invoke async por zoneId"| AGG
-    AGG -->|"serie temporal"| KPIS
-    ING -->|"UPSERT por spotId"| STATE
-    AGG -->|"scan/query zona"| STATE
-    APIGW --> LAPI
-    LAPI --> STATE
-    LAPI --> KPIS
-    Consumers -->|"HTTPS"| APIGW
-```
+![Arquitectura cloud del prototipo](memoria/imagenes/diagrama_arquitectura.png)
 
 ### Flujo de datos
 
-```mermaid
-flowchart TB
-    classDef input fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
-    classDef process fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
-    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
-    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
-    classDef note fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
-
-    A["1. Sensor / simulador<br/>detecta estado de plaza"]:::input
-    B["2. Publicación MQTT/TLS<br/><code>parking/+/spot/+/status</code>"]:::process
-    C["3. AWS IoT Core<br/>autentica y enruta"]:::process
-    D["4. Lambda ingest<br/>valida y normaliza payload"]:::process
-    E[("5. DynamoDB state<br/>estado actual por spotId")]:::data
-    F["6. Lambda aggregator<br/>recalcula zona afectada"]:::process
-    G[("7. DynamoDB zone-kpis<br/>serie temporal de agregados")]:::data
-    H["8. API Gateway + Lambda api<br/>consulta y formatea"]:::api
-    I["9. Dashboard / tercero<br/>recibe JSON o GeoJSON"]:::input
-    N["Sin matrículas ni datos personales:<br/>solo estado de plaza y KPIs agregados"]:::note
-
-    A --> B --> C --> D
-    D -->|"UPSERT"| E
-    D -->|"invoke async"| F
-    F -->|"lee zona"| E
-    F -->|"guarda KPIs"| G
-    I -->|"HTTPS"| H
-    H --> E
-    H --> G
-    H -->|"respuesta"| I
-    D -.-> N
-```
+![Flujo de datos desde sensor hasta dashboard](memoria/imagenes/diagrama_flujo_datos.png)
 
 ### Escalado
 
-```mermaid
-flowchart LR
-    classDef base fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
-    classDef upgrade fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
-    classDef target fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
-    classDef risk fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
-
-    P["Piloto académico<br/>40 plazas simuladas"]:::base
-    R["Piloto urbano<br/>~500 plazas"]:::base
-    Z["Particionado por zonas<br/>campus, deportivo, sanitario, residencial"]:::risk
-
-    F["Fleet provisioning<br/>certificado por sensor"]:::upgrade
-    K["Kinesis / buffer<br/>para picos"]:::upgrade
-    G["DynamoDB con GSI<br/>zona + estado"]:::upgrade
-    H["Histórico<br/>S3 o Timestream"]:::upgrade
-    S["API endurecida<br/>WAF + cuotas + auth"]:::upgrade
-    O["Operación municipal<br/>alertas + inventario"]:::upgrade
-
-    C["Escenario ciudad<br/>miles de plazas"]:::target
-
-    P --> R --> Z
-    Z --> F --> C
-    Z --> K --> C
-    Z --> G --> C
-    Z --> H --> C
-    Z --> S --> C
-    Z --> O --> C
-```
+![Escalado desde piloto académico hasta escenario ciudad](memoria/imagenes/diagrama_escalado.png)
 
 **Decisiones de diseño (resumen).** Todo lo que está a la derecha de IoT Core es infraestructura **serverless real** (paga por uso, multi-AZ por defecto, sin servidores que mantener). El simulador a la izquierda representa la flota física de **sensores magnéticos AMR** sobre **NB-IoT** — descartados explícitamente cámaras ANPR por plaza (privacidad, coste) y Sigfox (incertidumbre comercial). La justificación completa de cada elección está en `memoria/MEMORIA_TECNICA.pdf`.
 
@@ -280,6 +182,8 @@ python infra/04_setup_api_gateway.py   # REST API + stage prod
 
 La URL pública de la API queda persistida en `prototipo/infra/infra_state.json`.
 
+![Funciones Lambda desplegadas](memoria/imagenes/captura_lambda_functions.png)
+
 ### 8.4 Simulación
 
 ```powershell
@@ -295,6 +199,8 @@ python -m streamlit run dashboard/streamlit_app.py
 ```
 
 Se abre en `http://localhost:8501` y se autoconfigura leyendo `infra/infra_state.json`.
+
+![Stage prod de API Gateway](memoria/imagenes/captura_api_gateway_stage.png)
 
 ### 8.6 Teardown (al cerrar el lab)
 
@@ -339,6 +245,8 @@ curl "$base/zones/Z1-CAMPUS/kpis?limit=10"
 
 Especificación completa: `prototipo/api/openapi.yaml`.
 
+![Métricas de CloudWatch de la Lambda API](memoria/imagenes/captura_cloudwatch_lambda_logs.png)
+
 ---
 
 ## 11. Modelo de datos
@@ -365,6 +273,10 @@ Especificación completa: `prototipo/api/openapi.yaml`.
 | `occupancyRate` | Number | Ratio 0-1 |
 
 Se usa `Query` descendente por `windowEnd` para obtener los últimos N KPIs de cada zona.
+
+![Tabla DynamoDB de estado actual](memoria/imagenes/captura_dynamodb_state_items.png)
+
+![Tabla DynamoDB de KPIs por zona](memoria/imagenes/captura_dynamodb_zone_kpis.png)
 
 ---
 
