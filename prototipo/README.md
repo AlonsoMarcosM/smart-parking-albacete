@@ -11,6 +11,8 @@ Simulador (paho-mqtt, mTLS) -> AWS IoT Core -> IoT Rule -> Lambda ingesta
        -> API Gateway REST -> Streamlit dashboard / terceros
 ```
 
+![Arquitectura cloud del prototipo](../memoria/imagenes/diagrama_arquitectura.png)
+
 ## Requisitos
 
 - Python 3.11 o superior (probado en 3.13).
@@ -35,6 +37,18 @@ python infra/04_setup_api_gateway.py
 
 Tras `01_*` se generan los certificados X.509 dentro de `simulator/certs/`.
 Tras `04_*` la URL base de la API queda persistida en `infra/infra_state.json`.
+
+![Things creados en AWS IoT Core](../memoria/imagenes/captura_aws_iot_things.png)
+
+La captura anterior muestra el inventario de Things generado por el despliegue. Cada plaza simulada queda registrada con un identificador `ALB-Zx-NNN`.
+
+![Regla MQTT de AWS IoT Core](../memoria/imagenes/captura_aws_iot_topic_rule.png)
+
+La regla `smart_parking_albacete_ingest_rule` enruta los mensajes del topic `parking/+/spot/+/status` hacia la Lambda de ingesta.
+
+![Funciones Lambda del prototipo](../memoria/imagenes/captura_lambda_functions.png)
+
+Las tres Lambdas desplegadas separan responsabilidades: ingesta de eventos, agregacion de KPIs y lectura para la API.
 
 ### Cambio de cuenta AWS Academy
 
@@ -115,6 +129,14 @@ Invoke-RestMethod "$base/zones"
 # count = 4
 ```
 
+![Tabla DynamoDB de estado actual](../memoria/imagenes/captura_dynamodb_state_items.png)
+
+Tras ejecutar el simulador, la tabla `smart-parking-albacete-state` queda sembrada con una fila por plaza reportada.
+
+![Tabla DynamoDB de KPIs por zona](../memoria/imagenes/captura_dynamodb_zone_kpis.png)
+
+La tabla `smart-parking-albacete-zone-kpis` guarda los agregados temporales calculados por zona.
+
 ## Dashboard
 
 ```powershell
@@ -123,6 +145,18 @@ streamlit run dashboard/streamlit_app.py
 
 Se abre en `http://localhost:8501`. Toma la URL de la API de
 `infra/infra_state.json` automaticamente.
+
+![Stage prod de API Gateway](../memoria/imagenes/captura_api_gateway_stage.png)
+
+API Gateway publica el stage `prod`, que es la URL consumida por el dashboard y por clientes externos.
+
+![Dashboard Streamlit del prototipo](../memoria/imagenes/captura_dashboard_streamlit.png)
+
+## Verificacion
+
+![Metricas de CloudWatch de la Lambda API](../memoria/imagenes/captura_cloudwatch_lambda_logs.png)
+
+CloudWatch permite comprobar invocaciones, duracion, errores y concurrencia de la Lambda `smart-parking-albacete-api` durante la prueba.
 
 ## Teardown
 
