@@ -52,7 +52,7 @@ class ParkingSensor:
     key_path: Path
     ca_path: Path
     heartbeat_seconds: int = 60
-    fault: bool = False           # True => sensor caido (no publica nada)
+    fault: bool = False           # True => solo publica un estado inicial unknown
     low_battery: bool = False
 
     _client: mqtt.Client = field(init=False, repr=False)
@@ -64,7 +64,7 @@ class ParkingSensor:
 
     def __post_init__(self) -> None:
         self._battery = random.uniform(25, 35) if self.low_battery else random.uniform(70, 100)
-        self._status = random.choice(["free", "occupied", "free"])
+        self._status = "unknown" if self.fault else random.choice(["free", "occupied", "free"])
         self._client = mqtt.Client(
             client_id=self.spot_id,
             callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
@@ -89,15 +89,11 @@ class ParkingSensor:
         self._connected.clear()
 
     def connect(self) -> None:
-        if self.fault:
-            return
         self._client.connect(self.endpoint, port=8883, keepalive=120)
         self._client.loop_start()
         self._connected.wait(timeout=10)
 
     def disconnect(self) -> None:
-        if self.fault:
-            return
         self._client.loop_stop()
         self._client.disconnect()
 
@@ -118,8 +114,8 @@ class ParkingSensor:
             "timestamp": int(time.time() * 1000),
         }
 
-    def publish(self) -> None:
-        if self.fault:
+    def publish(self, *, force: bool = False) -> None:
+        if self.fault and not force:
             return
         payload = self._build_payload()
         self._client.publish(self._topic(), json.dumps(payload), qos=1)

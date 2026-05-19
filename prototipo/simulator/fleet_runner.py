@@ -91,7 +91,7 @@ def run(num_spots: int, duration: int, heartbeat: int, tick: float) -> None:
 
     # Publicacion inicial para sembrar el estado en DynamoDB
     for sensor in fleet:
-        sensor.publish()
+        sensor.publish(force=True)
     log("Publicacion inicial enviada (estado semilla)")
 
     started = time.time()

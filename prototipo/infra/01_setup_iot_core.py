@@ -42,7 +42,16 @@ AMAZON_ROOT_CA_URL = (
 
 def ensure_thing_type(iot) -> None:
     try:
-        iot.describe_thing_type(thingTypeName=THING_TYPE_NAME)
+        resp = iot.describe_thing_type(thingTypeName=THING_TYPE_NAME)
+        status = resp.get("thingTypeMetadata", {}).get("thingTypeStatus")
+        if status == "DEPRECATED":
+            raise RuntimeError(
+                f"Thing type {THING_TYPE_NAME} esta DEPRECATED. "
+                "AWS IoT no permite crear Things con un tipo deprecated. "
+                "Espera 5 minutos desde el teardown, borralo con "
+                f"`aws iot delete-thing-type --thing-type-name {THING_TYPE_NAME}` "
+                "y relanza este script."
+            )
         log(f"Thing type {THING_TYPE_NAME} ya existe")
     except ClientError as err:
         if not is_not_found(err):

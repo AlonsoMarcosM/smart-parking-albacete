@@ -76,7 +76,7 @@ def load_state() -> dict[str, Any]:
     """Estado persistente de la infraestructura desplegada (idempotencia)."""
     if not STATE_FILE.exists():
         return {}
-    with STATE_FILE.open("r", encoding="utf-8") as fh:
+    with STATE_FILE.open("r", encoding="utf-8-sig") as fh:
         return json.load(fh)
 
 

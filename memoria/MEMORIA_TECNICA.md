@@ -1,20 +1,10 @@
 ---
 title: "Memoria técnica - Smart Parking Albacete"
 subtitle: "Internet de las Cosas y sus Aplicaciones"
-author: "alonso.marcos@alu.uclm.es"
+author: "Alonso Marcos Muñoz"
 date: "Mayo 2026"
 lang: es-ES
 ---
-
-# 0. Resumen ejecutivo
-
-Este proyecto plantea una solución IoT de **aparcamiento inteligente** para una zona piloto del entorno universitario de Albacete. El caso de uso parte de una licitación ficticia del Ayuntamiento de Albacete y de una respuesta técnica de TECO S.L. El objetivo no es solo contar cuántas plazas están libres, sino diseñar una arquitectura completa capaz de recoger datos desde sensores, procesarlos, mantener el estado actualizado de cada plaza y exponer esa información a aplicaciones externas, paneles urbanos o futuros sistemas de movilidad conectada.
-
-La zona de trabajo se sitúa alrededor del Campus de la UCLM, el Estadio Carlos Belmonte, el Hospital Universitario y varias calles residenciales cercanas. Para el prototipo se han usado 40 plazas simuladas con coordenadas reales dentro de la BBOX `38.976059, -1.858728 -> 38.983215, -1.846111`. Estas plazas se agrupan en cuatro subzonas: `Z1-CAMPUS`, `Z2-DEPORTIVO`, `Z3-SANITARIO` y `Z4-RESIDENCIAL`. Esta división permite representar patrones distintos de ocupación: horarios universitarios, eventos deportivos, demanda sanitaria más constante y uso residencial.
-
-La solución diseñada usa sensores magnéticos AMR como tecnología principal de detección por plaza, conectividad NB-IoT como opción recomendada para un despliegue real y una plataforma cloud basada en AWS. El prototipo incluido en el repositorio implementa el flujo de datos con simuladores Python que publican eventos MQTT/TLS, AWS IoT Core como punto de entrada, una regla IoT que activa una Lambda de ingesta, DynamoDB como estado operacional, otra Lambda para agregados por zona, API Gateway para consulta externa y un dashboard Streamlit para visualizar el estado de las plazas.
-
-La memoria distingue en todo momento entre lo que está implementado y lo que forma parte del diseño de producción. En el prototipo están los scripts de infraestructura, las funciones Lambda, la API OpenAPI, el simulador y el dashboard. En el diseño de producción se describen elementos como certificados individuales por sensor, endurecimiento de la API, uso de edge computing, posible integración FIWARE y escalado a miles de plazas.
 
 # 1. Contexto y problema a resolver
 
@@ -63,6 +53,8 @@ NE: 38.983215, -1.846111
 
 Las cuatro subzonas usadas en el prototipo son:
 
+La elección de estas zonas ayuda a defender el proyecto porque evita un piloto artificial con plazas idénticas. Un sistema real debe comportarse bien tanto en una calle universitaria con mucha rotación como en una zona residencial con cambios más lentos o en un entorno deportivo con picos concentrados. La arquitectura propuesta no necesita reglas distintas por zona: cada sensor publica el mismo tipo de evento y la diferencia se observa después en los KPIs.
+
 | Zona | Descripción | Patrón esperado |
 |---|---|---|
 | `Z1-CAMPUS` | Calles del entorno universitario | Alta ocupación en horas lectivas |
@@ -70,7 +62,11 @@ Las cuatro subzonas usadas en el prototipo son:
 | `Z3-SANITARIO` | Hospital y facultades cercanas | Demanda más estable durante el día |
 | `Z4-RESIDENCIAL` | Calles residenciales del sur | Mayor ocupación nocturna |
 
-La elección de estas zonas ayuda a defender el proyecto porque evita un piloto artificial con plazas idénticas. Un sistema real debe comportarse bien tanto en una calle universitaria con mucha rotación como en una zona residencial con cambios más lentos o en un entorno deportivo con picos concentrados. La arquitectura propuesta no necesita reglas distintas por zona: cada sensor publica el mismo tipo de evento y la diferencia se observa después en los KPIs.
+## 1.4 Evidencias visuales
+
+La memoria se apoya en dos tipos de material visual. Por un lado, se incluyen diagramas para explicar la arquitectura, el flujo de datos y la escalabilidad prevista del sistema. Por otro, se incorporan capturas del despliegue real del prototipo en AWS Academy Learner Lab y del dashboard de explotación para demostrar que la solución se ejecutó de extremo a extremo.
+
+Las figuras y capturas se reparten más adelante en los apartados técnicos donde aportan contexto directo. Así se evita tratarlas como un inventario de ficheros y cada evidencia queda asociada al componente que justifica: IoT Core en la arquitectura, DynamoDB en el modelo de datos, API Gateway en la exposición externa, Streamlit en el prototipo y CloudWatch en la verificación.
 
 # 2. Requisitos del sistema
 
@@ -192,54 +188,13 @@ La arquitectura cloud se ha diseñado con servicios gestionados y serverless par
 
 ## 5.1 Vista general
 
-```mermaid
-flowchart TB
-    classDef sensor fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
-    classDef aws fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
-    classDef compute fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
-    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
-    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
+![Arquitectura cloud del prototipo y consumidores externos](imagenes/diagrama_arquitectura.png)
 
-    subgraph Edge["Capa de telemetría / borde"]
-        direction LR
-        SIM["Simulador Python<br/>40 plazas"]:::sensor
-        REAL["Sensor AMR magnético<br/>(diseño producción)"]:::sensor
-    end
-
-    subgraph AWS["AWS Academy Learner Lab / AWS Cloud"]
-        direction TB
-        IOT["AWS IoT Core<br/>MQTT + mTLS + Things"]:::aws
-        RULE["IoT Topic Rule<br/><code>parking/+/spot/+/status</code>"]:::aws
-        ING["Lambda ingest<br/>normaliza eventos"]:::compute
-        STATE[("DynamoDB<br/>parking-state")]:::data
-        AGG["Lambda aggregator<br/>KPIs por zona"]:::compute
-        KPIS[("DynamoDB<br/>zone-kpis")]:::data
-        APIGW["API Gateway REST<br/>OpenAPI + GeoJSON"]:::api
-        LAPI["Lambda api<br/>lectura para clientes"]:::compute
-    end
-
-    subgraph Consumers["Consumo de datos"]
-        direction LR
-        DASH["Dashboard Streamlit<br/>mapa + KPIs"]:::sensor
-        EXT["Apps / paneles / movilidad<br/>cliente externo HTTPS"]:::sensor
-    end
-
-    SIM -->|"MQTT/TLS + X.509"| IOT
-    REAL -. "NB-IoT en despliegue real" .-> IOT
-    IOT --> RULE --> ING
-    ING -->|"invoke async por zoneId"| AGG
-    AGG -->|"serie temporal"| KPIS
-    ING -->|"UPSERT por spotId"| STATE
-    AGG -->|"scan/query zona"| STATE
-    APIGW --> LAPI
-    LAPI --> STATE
-    LAPI --> KPIS
-    Consumers -->|"HTTPS"| APIGW
-```
-
-En la versión LaTeX/PDF este diagrama se incluye como imagen exportada en `memoria/imagenes/diagrama_arquitectura.png`.
+*Figura. Arquitectura cloud del prototipo y consumidores externos.*
 
 ## 5.2 Servicios usados
+
+El patrón completo es sencillo: un evento llega a IoT Core, una regla lo entrega a la Lambda de ingesta, la Lambda actualiza el estado de la plaza y activa el cálculo de KPIs de la zona. Después, la API consulta DynamoDB y devuelve la información en JSON o GeoJSON.
 
 | Servicio | Uso en el proyecto |
 |---|---|
@@ -251,7 +206,17 @@ En la versión LaTeX/PDF este diagrama se incluye como imagen exportada en `memo
 | Amazon CloudWatch | Logs de ejecución |
 | IAM / LabRole | Permisos de ejecución en el entorno académico |
 
-El patrón completo es sencillo: un evento llega a IoT Core, una regla lo entrega a la Lambda de ingesta, la Lambda actualiza el estado de la plaza y activa el cálculo de KPIs de la zona. Después, la API consulta DynamoDB y devuelve la información en JSON o GeoJSON.
+![Listado de Things en AWS IoT Core con los identificadores ALB-Zx-NNN](imagenes/captura_aws_iot_things.png)
+
+*Figura. Inventario de Things en AWS IoT Core para las 40 plazas simuladas.*
+
+![Regla de IoT Core smart_parking_albacete_ingest_rule](imagenes/captura_aws_iot_topic_rule.png)
+
+*Figura. Regla de IoT Core que enruta los eventos MQTT hacia la Lambda de ingesta.*
+
+![Funciones Lambda del prototipo: ingest, aggregator y api](imagenes/captura_lambda_functions.png)
+
+*Figura. Funciones Lambda desplegadas para ingesta, agregación y exposición de API.*
 
 ## 5.3 Flujo paso a paso
 
@@ -266,38 +231,9 @@ El patrón completo es sencillo: un evento llega a IoT Core, una regla lo entreg
 
 Este flujo permite explicar la arquitectura sin entrar en detalles internos de AWS. Cada pieza tiene una función concreta y el dato avanza siempre en la misma dirección: del sensor al estado, del estado a los agregados y de los agregados a los consumidores.
 
-```mermaid
-flowchart TB
-    classDef input fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
-    classDef process fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
-    classDef data fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
-    classDef api fill:#ffecec,stroke:#b42318,stroke-width:2px,color:#162033
-    classDef note fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+![Flujo extremo a extremo desde el sensor hasta la API y el dashboard](imagenes/diagrama_flujo_datos.png)
 
-    A["1. Sensor / simulador<br/>detecta estado de plaza"]:::input
-    B["2. Publicación MQTT/TLS<br/><code>parking/+/spot/+/status</code>"]:::process
-    C["3. AWS IoT Core<br/>autentica y enruta"]:::process
-    D["4. Lambda ingest<br/>valida y normaliza payload"]:::process
-    E[("5. DynamoDB state<br/>estado actual por spotId")]:::data
-    F["6. Lambda aggregator<br/>recalcula zona afectada"]:::process
-    G[("7. DynamoDB zone-kpis<br/>serie temporal de agregados")]:::data
-    H["8. API Gateway + Lambda api<br/>consulta y formatea"]:::api
-    I["9. Dashboard / tercero<br/>recibe JSON o GeoJSON"]:::input
-    N["Sin matrículas ni datos personales:<br/>solo estado de plaza y KPIs agregados"]:::note
-
-    A --> B --> C --> D
-    D -->|"UPSERT"| E
-    D -->|"invoke async"| F
-    F -->|"lee zona"| E
-    F -->|"guarda KPIs"| G
-    I -->|"HTTPS"| H
-    H --> E
-    H --> G
-    H -->|"respuesta"| I
-    D -.-> N
-```
-
-En la versión LaTeX/PDF este flujo se incluye como imagen exportada en `memoria/imagenes/diagrama_flujo_datos.png`.
+*Figura. Flujo extremo a extremo desde el sensor hasta la API y el dashboard.*
 
 ## 5.4 Reparto entre edge y cloud
 
@@ -306,6 +242,8 @@ En una instalación real, parte del trabajo debería hacerse cerca del sensor o 
 En el prototipo se implementa la parte cloud: normalización de eventos, persistencia de estado, agregados, API y visualización. El edge queda descrito como diseño de producción porque no hay sensores físicos ni gateways reales en el alcance entregado.
 
 ## 5.5 Qué está implementado y qué queda diseñado
+
+Esta separación es importante porque evita presentar como producción algo que realmente es un prototipo académico. El valor del trabajo está en que las piezas software sí están conectadas y son ejecutables, mientras que la sensorización física queda especificada para una fase posterior.
 
 | Parte | Situación en este proyecto |
 |---|---|
@@ -318,8 +256,6 @@ En el prototipo se implementa la parte cloud: normalización de eventos, persist
 | Gateway edge real | Diseñado, no desplegado |
 | Integración C-V2X | Descrita como posibilidad futura |
 | FIWARE Orion | Propuesto como interoperabilidad futura |
-
-Esta separación es importante porque evita presentar como producción algo que realmente es un prototipo académico. El valor del trabajo está en que las piezas software sí están conectadas y son ejecutables, mientras que la sensorización física queda especificada para una fase posterior.
 
 ## 5.6 FIWARE e interoperabilidad
 
@@ -345,6 +281,10 @@ La tabla `smart-parking-albacete-state` guarda una fila por plaza. Su clave prin
 | `confidence` | Confianza de la lectura |
 | `lastUpdated` | Último instante conocido |
 
+![Tabla DynamoDB smart-parking-albacete-state con items de plazas](imagenes/captura_dynamodb_state_items.png)
+
+*Figura. Tabla DynamoDB de estado actual con una fila por plaza reportada.*
+
 ## 6.2 Tabla de KPIs por zona
 
 La tabla `smart-parking-albacete-zone-kpis` guarda agregados temporales. Su clave combina `zoneId` y `windowEnd`, lo que permite recuperar los últimos valores de ocupación de una zona.
@@ -358,6 +298,10 @@ La tabla `smart-parking-albacete-zone-kpis` guarda agregados temporales. Su clav
 | `occupiedSpots` | Plazas ocupadas |
 | `unknownSpots` | Plazas sin estado fiable |
 | `occupancyRate` | Porcentaje de ocupación |
+
+![Tabla DynamoDB smart-parking-albacete-zone-kpis con agregados por zona](imagenes/captura_dynamodb_zone_kpis.png)
+
+*Figura. Tabla DynamoDB de KPIs por zona y marca temporal.*
 
 ## 6.3 API REST
 
@@ -379,7 +323,13 @@ curl "$base/spots?format=geojson"
 
 GeoJSON es importante porque permite pintar la respuesta directamente sobre visores cartográficos sin transformar los datos manualmente.
 
+![API Gateway smart-parking-albacete-api publicada en stage prod](imagenes/captura_api_gateway_stage.png)
+
+*Figura. API Gateway publicada con stage `prod` y URL de invocación activa.*
+
 ## 6.4 Ejemplo de uso de la API
+
+La respuesta de `/zones` resume el estado operativo de cada zona. Esa respuesta es suficiente para un panel municipal que quiera mostrar “Campus: 60 % ocupado” o para una aplicación que prefiera recomendar una zona con más disponibilidad antes que una plaza concreta.
 
 Una aplicación externa no necesita conocer DynamoDB ni IoT Core. Solo consume HTTPS:
 
@@ -390,8 +340,6 @@ curl "$base/spots?zone=Z1-CAMPUS"
 curl "$base/zones"
 curl "$base/zones/Z1-CAMPUS/kpis?limit=10"
 ```
-
-La respuesta de `/zones` resume el estado operativo de cada zona. Esa respuesta es suficiente para un panel municipal que quiera mostrar “Campus: 60 % ocupado” o para una aplicación que prefiera recomendar una zona con más disponibilidad antes que una plaza concreta.
 
 # 7. Seguridad y privacidad
 
@@ -458,6 +406,10 @@ El dashboard Streamlit actúa como panel de operador. Su valor no está en susti
 
 El mapa usa las coordenadas del fichero `parking_zone_seed.json`. Esto evita colocar puntos inventados en posiciones genéricas y hace que la demo tenga relación con la zona piloto definida en la guía. Para una entrega académica es suficiente; en un despliegue real habría que completar el inventario exacto de plazas y validarlo con cartografía municipal.
 
+![Dashboard Streamlit del prototipo con KPIs, mapa, barras, serie temporal y tabla](imagenes/captura_dashboard_streamlit.png)
+
+*Figura. Dashboard Streamlit del prototipo una vez sembrados los 40 sensores simulados.*
+
 ## 8.4 Qué demuestra el prototipo
 
 | Elemento | Estado |
@@ -478,6 +430,8 @@ El mapa usa las coordenadas del fichero `parking_zone_seed.json`. Esto evita col
 
 La verificación del prototipo se puede hacer sin leer el código fuente. Basta con desplegar la infraestructura, lanzar el simulador y consultar la API. Los puntos que deben comprobarse son:
 
+Esta verificación es importante para la defensa porque demuestra el flujo completo con evidencias observables: consola, API y dashboard.
+
 | Comprobación | Resultado esperado |
 |---|---|
 | Things en IoT Core | 40 identificadores `ALB-Zx-NNN` |
@@ -488,7 +442,9 @@ La verificación del prototipo se puede hacer sin leer el código fuente. Basta 
 | `/zones` | Agregados de libres, ocupadas y desconocidas |
 | Dashboard | Mapa y métricas actualizadas |
 
-Esta verificación es importante para la defensa porque demuestra el flujo completo con evidencias observables: consola, API y dashboard.
+![CloudWatch Logs de la Lambda API durante la ejecución del prototipo](imagenes/captura_cloudwatch_lambda_logs.png)
+
+*Figura. Evidencia en CloudWatch Logs de invocaciones sobre la Lambda `smart-parking-albacete-api`.*
 
 # 9. Escalabilidad
 
@@ -496,36 +452,9 @@ El piloto trabaja con 40 plazas simuladas y está pensado para representar un de
 
 Al crecer hacia una ciudad completa, por ejemplo 10 000 plazas, no cambia la idea principal, pero sí aparecen mejoras necesarias:
 
-```mermaid
-flowchart LR
-    classDef base fill:#e8f3ff,stroke:#174a7c,stroke-width:2px,color:#162033
-    classDef upgrade fill:#edf7ed,stroke:#2f7d32,stroke-width:2px,color:#162033
-    classDef target fill:#f1ecff,stroke:#6f42c1,stroke-width:2px,color:#162033
-    classDef risk fill:#fff4df,stroke:#b87900,stroke-width:2px,color:#162033
+![Escalado desde piloto académico hasta escenario ciudad](imagenes/diagrama_escalado.png)
 
-    P["Piloto académico<br/>40 plazas simuladas"]:::base
-    R["Piloto urbano<br/>~500 plazas"]:::base
-    Z["Particionado por zonas<br/>campus, deportivo, sanitario, residencial"]:::risk
-
-    F["Fleet provisioning<br/>certificado por sensor"]:::upgrade
-    K["Kinesis / buffer<br/>para picos"]:::upgrade
-    G["DynamoDB con GSI<br/>zona + estado"]:::upgrade
-    H["Histórico<br/>S3 o Timestream"]:::upgrade
-    S["API endurecida<br/>WAF + cuotas + auth"]:::upgrade
-    O["Operación municipal<br/>alertas + inventario"]:::upgrade
-
-    C["Escenario ciudad<br/>miles de plazas"]:::target
-
-    P --> R --> Z
-    Z --> F --> C
-    Z --> K --> C
-    Z --> G --> C
-    Z --> H --> C
-    Z --> S --> C
-    Z --> O --> C
-```
-
-En la versión LaTeX/PDF este diagrama se incluye como imagen exportada en `memoria/imagenes/diagrama_escalado.png`.
+*Figura. Escalado desde piloto académico hasta escenario ciudad.*
 
 | Componente | Mejora al escalar |
 |---|---|
@@ -537,9 +466,9 @@ En la versión LaTeX/PDF este diagrama se incluye como imagen exportada en `memo
 | Observabilidad | Métricas, alarmas y auditoría por zona |
 | Operación | Inventario de sensores, batería y mantenimiento programado |
 
-El escalado debe organizarse por zonas o distritos. Esto facilita mantenimiento, análisis de ocupación y despliegues progresivos. También permite activar alertas localizadas, por ejemplo si una zona deja de enviar heartbeats o si una calle presenta datos incoherentes.
-
 ## 9.1 Operación diaria
+
+El escalado debe organizarse por zonas o distritos. Esto facilita mantenimiento, análisis de ocupación y despliegues progresivos. También permite activar alertas localizadas, por ejemplo si una zona deja de enviar heartbeats o si una calle presenta datos incoherentes.
 
 En operación real, el sistema no se considera terminado cuando se despliegan los sensores. Hay que supervisarlo. El operador debería revisar sensores sin heartbeat, baterías bajas, zonas con datos anómalos y errores de API. También conviene disponer de un inventario que relacione cada `spotId` con su ubicación física exacta, fecha de instalación y último mantenimiento.
 
@@ -548,6 +477,10 @@ La operación por zonas simplifica mucho el trabajo. Si una calle entra en obras
 # 10. Costes aproximados
 
 El coste de una solución de smart parking no está dominado por la nube, sino por los sensores, la instalación y el mantenimiento físico. La parte cloud es relevante, pero normalmente representa una fracción pequeña del total.
+
+El OPEX mensual incluiría tarjetas NB-IoT, mantenimiento y servicios AWS. Para el volumen del piloto, la nube tendría un coste bajo frente a conectividad y mantenimiento. En una ciudad con miles de plazas, el coste cloud crecería de forma aproximadamente lineal, pero seguiría siendo menor que la operación física de la red de sensores.
+
+Estas cifras son orientativas y sirven para comparar órdenes de magnitud. Antes de una licitación real habría que actualizar precios de sensores, instalación, SIM M2M y servicios AWS.
 
 Para un piloto de 500 plazas, las partidas principales serían:
 
@@ -558,10 +491,6 @@ Para un piloto de 500 plazas, las partidas principales serían:
 | Gateways y soporte | 3 000-5 000 EUR |
 | Cámaras puntuales y nodos ambientales | 8 000-10 000 EUR |
 | Ingeniería y puesta en marcha | 15-20 % del hardware |
-
-El OPEX mensual incluiría tarjetas NB-IoT, mantenimiento y servicios AWS. Para el volumen del piloto, la nube tendría un coste bajo frente a conectividad y mantenimiento. En una ciudad con miles de plazas, el coste cloud crecería de forma aproximadamente lineal, pero seguiría siendo menor que la operación física de la red de sensores.
-
-Estas cifras son orientativas y sirven para comparar órdenes de magnitud. Antes de una licitación real habría que actualizar precios de sensores, instalación, SIM M2M y servicios AWS.
 
 # 11. Limitaciones y trabajo futuro
 
