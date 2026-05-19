@@ -12,6 +12,7 @@
 \usepackage{fancyhdr}
 \usepackage{titlesec}
 \usepackage{caption}
+\usepackage{float}
 \usepackage{hyperref}
 \usepackage{listings}
 
@@ -138,7 +139,7 @@ SW: 38.976059, -1.858728
 NE: 38.983215, -1.846111
 \end{lstlisting}
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.86\textwidth]{imagenes/bbox.png}
 \caption{Zona piloto del entorno universitario de Albacete.}
@@ -297,7 +298,7 @@ Para un piloto de 500 plazas, si cada plaza tuviera varios cambios diarios y ade
 La arquitectura cloud se ha diseñado con servicios gestionados y serverless para reducir la operación. En lugar de mantener servidores propios, cada servicio asume una responsabilidad clara: IoT Core recibe eventos, Lambda procesa, DynamoDB almacena y API Gateway expone datos.
 
 \subsection{Vista general}
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/diagrama_arquitectura.png}
 \caption{Arquitectura cloud del prototipo y consumidores externos.}
@@ -322,19 +323,19 @@ IAM / LabRole & Permisos de ejecución en el entorno académico \\
 \bottomrule
 \end{longtable}
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/captura_aws_iot_things.png}
 \caption{Listado de Things en AWS IoT Core con los identificadores \texttt{ALB-Zx-NNN}.}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/captura_aws_iot_topic_rule.png}
 \caption{Regla \texttt{smart\_parking\_albacete\_ingest\_rule} en AWS IoT Core.}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.88\textwidth]{imagenes/captura_lambda_functions.png}
 \caption{Funciones Lambda desplegadas para ingesta, agregación y API.}
@@ -355,7 +356,7 @@ IAM / LabRole & Permisos de ejecución en el entorno académico \\
 
 Este flujo permite explicar la arquitectura sin entrar en detalles internos de AWS. Cada pieza tiene una función concreta y el dato avanza siempre en la misma dirección: del sensor al estado, del estado a los agregados y de los agregados a los consumidores.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/diagrama_flujo_datos.png}
 \caption{Flujo extremo a extremo desde el sensor hasta la API y el dashboard.}
@@ -417,7 +418,7 @@ La tabla \texttt{smart-parking-albacete-state} guarda una fila por plaza. Su cla
 \bottomrule
 \end{longtable}
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/captura_dynamodb_state_items.png}
 \caption{Tabla \texttt{smart-parking-albacete-state} con el estado actual de las plazas.}
@@ -442,7 +443,7 @@ La tabla \texttt{smart-parking-albacete-zone-kpis} guarda agregados temporales. 
 \bottomrule
 \end{longtable}
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/captura_dynamodb_zone_kpis.png}
 \caption{Tabla \texttt{smart-parking-albacete-zone-kpis} con agregados temporales por zona.}
@@ -473,7 +474,7 @@ curl "$base/spots?format=geojson"
 
 GeoJSON es importante porque permite pintar la respuesta directamente sobre visores cartográficos sin transformar los datos manualmente.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/captura_api_gateway_stage.png}
 \caption{API Gateway publicada con stage \texttt{prod} y URL de invocación.}
@@ -559,7 +560,7 @@ El dashboard Streamlit actúa como panel de operador. Su valor no está en susti
 
 El mapa usa las coordenadas del fichero \texttt{parking\_zone\_seed.json}. Esto evita colocar puntos inventados en posiciones genéricas y hace que la demo tenga relación con la zona piloto definida en la guía. Para una entrega académica es suficiente; en un despliegue real habría que completar el inventario exacto de plazas y validarlo con cartografía municipal.
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/captura_dashboard_streamlit.png}
 \caption{Dashboard Streamlit del prototipo con KPIs, mapa, serie temporal y tabla de detalle.}
@@ -606,7 +607,7 @@ Dashboard & Mapa y métricas actualizadas \\
 \bottomrule
 \end{longtable}
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/captura_cloudwatch_lambda_logs.png}
 \caption{CloudWatch Logs de la Lambda \texttt{smart-parking-albacete-api}.}
@@ -618,7 +619,7 @@ El piloto trabaja con 40 plazas simuladas y está pensado para representar un de
 
 Al crecer hacia una ciudad completa, por ejemplo 10 000 plazas, no cambia la idea principal, pero sí aparecen mejoras necesarias:
 
-\begin{figure}[ht]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{imagenes/diagrama_escalado.png}
 \caption{Evolución propuesta desde piloto hasta escenario ciudad.}
