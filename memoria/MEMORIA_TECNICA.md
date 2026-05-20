@@ -62,12 +62,6 @@ La elección de estas zonas ayuda a defender el proyecto porque evita un piloto 
 | `Z3-SANITARIO` | Hospital y facultades cercanas | Demanda más estable durante el día |
 | `Z4-RESIDENCIAL` | Calles residenciales del sur | Mayor ocupación nocturna |
 
-## 1.4 Evidencias visuales
-
-La memoria se apoya en dos tipos de material visual. Por un lado, se incluyen diagramas para explicar la arquitectura, el flujo de datos y la escalabilidad prevista del sistema. Por otro, se incorporan capturas del despliegue real del prototipo en AWS Academy Learner Lab y del dashboard de explotación para demostrar que la solución se ejecutó de extremo a extremo.
-
-Las figuras y capturas se reparten más adelante en los apartados técnicos donde aportan contexto directo. Así se evita tratarlas como un inventario de ficheros y cada evidencia queda asociada al componente que justifica: IoT Core en la arquitectura, DynamoDB en el modelo de datos, API Gateway en la exposición externa, Streamlit en el prototipo y CloudWatch en la verificación.
-
 # 2. Requisitos del sistema
 
 El sistema debe resolver una necesidad sencilla de expresar pero exigente en la práctica: conocer si una plaza está libre u ocupada y hacer que ese dato llegue a usuarios o sistemas externos de forma fiable. Para lograrlo se definen requisitos funcionales y no funcionales.
