@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "repository": "AlonsoMarcosM/smart-parking-albacete",
+  "repository_url": "https://github.com/AlonsoMarcosM/smart-parking-albacete",
+  "title": {
+    "es": "Smart Parking Albacete",
+    "en": "Smart Parking Albacete"
+  },
+  "summary": {
+    "es": "Plataforma IoT serverless con dashboard cartográfico y simulación gratuita.",
+    "en": "Serverless IoT platform with a map dashboard and a free simulation mode."
+  },
+  "technologies": ["Python", "Streamlit", "AWS IoT Core", "Lambda", "DynamoDB", "API Gateway"],
+  "deployment": {
+    "type": "interactive",
+    "provider": "streamlit-community-cloud",
+    "mode": "simulated",
+    "source_branch": "main",
+    "status": "prepared",
+    "url": null
+  }
+}
