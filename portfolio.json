@@ -16,7 +16,7 @@
     "provider": "streamlit-community-cloud",
     "mode": "simulated",
     "source_branch": "main",
-    "status": "prepared",
-    "url": null
+    "status": "live",
+    "url": "https://smart-parking-albacete.streamlit.app/"
   }
 }

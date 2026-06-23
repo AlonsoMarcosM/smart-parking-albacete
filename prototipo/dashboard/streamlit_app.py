@@ -54,7 +54,10 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-      .block-container {padding-top: 0.6rem; padding-bottom: 0.4rem; padding-left: 1rem; padding-right: 1rem; max-width: 100%;}
+      .block-container {padding-top: 3.5rem; padding-bottom: 0.4rem; padding-left: 1rem; padding-right: 1rem; max-width: 100%;}
+      @media (max-width: 768px) {
+        .block-container {padding-top: 4.2rem;}
+      }
       [data-testid="stMetric"] {padding: 4px 8px;}
       [data-testid="stMetricLabel"] {font-size: 0.8rem;}
       [data-testid="stMetricValue"] {font-size: 1.6rem;}

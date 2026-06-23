@@ -1,5 +1,7 @@
 # Smart Parking Albacete · Plataforma IoT serverless en AWS
 
+> **Despliegue público:** [Abrir dashboard](https://smart-parking-albacete.streamlit.app/)
+
 > Sistema *end-to-end* de aparcamiento inteligente para el entorno universitario de Albacete: **40 sensores** simulados publicando por MQTT/TLS a **AWS IoT Core**, procesado *serverless* con **Lambda + DynamoDB**, expuesto por **API Gateway REST** (con soporte GeoJSON) y consumido desde un **dashboard Streamlit** con mapa en tiempo real.
 
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
