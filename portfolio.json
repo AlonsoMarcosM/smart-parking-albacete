@@ -60,8 +60,8 @@
         "en": "Simulated sensors"
       },
       "value": "40",
-      "evidence": "memoria/imagenes/captura_dashboard_streamlit.png",
-      "source_type": "execution-evidence"
+      "evidence": "prototipo/tests/test_demo_data.py",
+      "source_type": "automated-test"
     },
     {
       "label": {
