@@ -126,10 +126,7 @@
     }
   ],
   "assets": [
-    "memoria/imagenes/diagrama_arquitectura.png",
-    "memoria/imagenes/captura_dashboard_streamlit.png",
-    "memoria/imagenes/captura_aws_iot_things.png",
-    "memoria/imagenes/captura_dynamodb_state_items.png"
+    "memoria/imagenes/diagrama_arquitectura.png"
   ],
   "limitations": {
     "es": [
