@@ -46,7 +46,7 @@ demo_mode = mode == "demo" or (mode == "auto" and not api_base)
 
 st.set_page_config(
     page_title="Smart Parking Albacete",
-    page_icon=":car:",
+    page_icon="🚗",
     layout="wide",
     initial_sidebar_state="collapsed",
 )

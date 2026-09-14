@@ -1,22 +1,164 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "repository": "AlonsoMarcosM/smart-parking-albacete",
   "repository_url": "https://github.com/AlonsoMarcosM/smart-parking-albacete",
+  "slug": "smart-parking-albacete",
   "title": {
     "es": "Smart Parking Albacete",
     "en": "Smart Parking Albacete"
   },
-  "summary": {
-    "es": "Plataforma IoT serverless con dashboard cartográfico y simulación gratuita.",
-    "en": "Serverless IoT platform with a map dashboard and a free simulation mode."
+  "lifecycle": "academic-delivered",
+  "classification": "applied-academic-project",
+  "problem": {
+    "es": "Validar una plataforma IoT de aparcamiento inteligente, desde la telemetría hasta una API y un dashboard cartográfico.",
+    "en": "Validate a smart-parking IoT platform from telemetry through to an API and a map dashboard."
   },
-  "technologies": ["Python", "Streamlit", "AWS IoT Core", "Lambda", "DynamoDB", "API Gateway"],
-  "deployment": {
-    "type": "interactive",
-    "provider": "streamlit-community-cloud",
-    "mode": "simulated",
-    "source_branch": "main",
-    "status": "live",
-    "url": "https://smart-parking-albacete.streamlit.app/"
-  }
+  "architecture": {
+    "es": "Sensores simulados publican por MQTT con mTLS en AWS IoT Core. Lambda procesa y agrega el estado en DynamoDB, API Gateway lo expone y Streamlit lo visualiza.",
+    "en": "Simulated sensors publish over MQTT with mTLS to AWS IoT Core. Lambda processes and aggregates state in DynamoDB, API Gateway exposes it and Streamlit visualises it."
+  },
+  "dataFlow": {
+    "es": "Sensor simulado → MQTT/TLS → IoT Rule → Lambda → DynamoDB → API Gateway → Streamlit.",
+    "en": "Simulated sensor → MQTT/TLS → IoT Rule → Lambda → DynamoDB → API Gateway → Streamlit."
+  },
+  "stack": [
+    "Python",
+    "AWS IoT Core",
+    "AWS Lambda",
+    "Amazon DynamoDB",
+    "Amazon API Gateway",
+    "OpenAPI 3.0",
+    "GeoJSON",
+    "Streamlit",
+    "boto3"
+  ],
+  "team": [
+    {
+      "name": "Alonso Marcos Muñoz",
+      "role": {
+        "es": "Autor y desarrollador",
+        "en": "Author and developer"
+      }
+    }
+  ],
+  "ownership": {
+    "es": [
+      "Diseño de la arquitectura IoT serverless y del modelo de datos",
+      "Implementación de simuladores, Lambdas, API y dashboard",
+      "Automatización idempotente del despliegue y teardown en AWS Academy"
+    ],
+    "en": [
+      "Serverless IoT architecture and data-model design",
+      "Implementation of simulators, Lambdas, API and dashboard",
+      "Idempotent deployment and teardown automation in AWS Academy"
+    ]
+  },
+  "verifiedMetrics": [
+    {
+      "label": {
+        "es": "Sensores simulados",
+        "en": "Simulated sensors"
+      },
+      "value": "40",
+      "evidence": "memoria/imagenes/captura_dashboard_streamlit.png",
+      "source_type": "execution-evidence"
+    },
+    {
+      "label": {
+        "es": "Latencia piloto",
+        "en": "Pilot latency"
+      },
+      "value": "< 2 s",
+      "evidence": "README.md#resultados-medidos",
+      "source_type": "project-measurement"
+    },
+    {
+      "label": {
+        "es": "Ritmo sostenido",
+        "en": "Sustained rate"
+      },
+      "value": "~4 eventos/min",
+      "evidence": "README.md#resultados-medidos",
+      "source_type": "project-measurement"
+    },
+    {
+      "label": {
+        "es": "Coste estimado del piloto",
+        "en": "Estimated pilot cost"
+      },
+      "value": "< 5 USD/mes",
+      "evidence": "memoria/MEMORIA_TECNICA.md",
+      "source_type": "documented-calculation"
+    }
+  ],
+  "evidence": [
+    {
+      "type": "architecture",
+      "path": "memoria/imagenes/diagrama_arquitectura.png",
+      "label": {
+        "es": "Arquitectura IoT",
+        "en": "IoT architecture"
+      }
+    },
+    {
+      "type": "dashboard",
+      "path": "memoria/imagenes/captura_dashboard_streamlit.png",
+      "label": {
+        "es": "Dashboard Streamlit",
+        "en": "Streamlit dashboard"
+      }
+    },
+    {
+      "type": "cloud",
+      "path": "memoria/imagenes/captura_aws_iot_things.png",
+      "label": {
+        "es": "Things desplegados en AWS IoT",
+        "en": "Deployed AWS IoT Things"
+      }
+    },
+    {
+      "type": "storage",
+      "path": "memoria/imagenes/captura_dynamodb_state_items.png",
+      "label": {
+        "es": "Estado de plazas en DynamoDB",
+        "en": "Parking state in DynamoDB"
+      }
+    }
+  ],
+  "assets": [
+    "memoria/imagenes/diagrama_arquitectura.png",
+    "memoria/imagenes/captura_dashboard_streamlit.png",
+    "memoria/imagenes/captura_aws_iot_things.png",
+    "memoria/imagenes/captura_dynamodb_state_items.png"
+  ],
+  "limitations": {
+    "es": [
+      "El piloto usa sensores simulados y no valida la electrónica de un sensor físico",
+      "El despliegue real se realizó en AWS Academy y la demo pública usa un fallback determinista",
+      "FIWARE y Flink se documentan como evolución y no forman parte del piloto implementado"
+    ],
+    "en": [
+      "The pilot uses simulated sensors and does not validate physical sensor electronics",
+      "The real deployment ran in AWS Academy and the public demo uses a deterministic fallback",
+      "FIWARE and Flink are documented as future evolution and are not implemented in the pilot"
+    ]
+  },
+  "links": [
+    {
+      "type": "live_demo",
+      "url": "https://smart-parking-albacete.streamlit.app/"
+    },
+    {
+      "type": "case_study",
+      "url": "https://alonsomarcosm.github.io/es/projects/smart-parking-albacete/"
+    },
+    {
+      "type": "architecture",
+      "url": "https://github.com/AlonsoMarcosM/smart-parking-albacete/blob/main/memoria/imagenes/diagrama_arquitectura.png"
+    },
+    {
+      "type": "github",
+      "url": "https://github.com/AlonsoMarcosM/smart-parking-albacete"
+    }
+  ]
 }
