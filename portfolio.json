@@ -99,30 +99,6 @@
         "es": "Arquitectura IoT",
         "en": "IoT architecture"
       }
-    },
-    {
-      "type": "dashboard",
-      "path": "memoria/imagenes/captura_dashboard_streamlit.png",
-      "label": {
-        "es": "Dashboard Streamlit",
-        "en": "Streamlit dashboard"
-      }
-    },
-    {
-      "type": "cloud",
-      "path": "memoria/imagenes/captura_aws_iot_things.png",
-      "label": {
-        "es": "Things desplegados en AWS IoT",
-        "en": "Deployed AWS IoT Things"
-      }
-    },
-    {
-      "type": "storage",
-      "path": "memoria/imagenes/captura_dynamodb_state_items.png",
-      "label": {
-        "es": "Estado de plazas en DynamoDB",
-        "en": "Parking state in DynamoDB"
-      }
     }
   ],
   "assets": [
